@@ -1,0 +1,11 @@
+		// Make sure menu items get rebuilt as neces
+		menu_rebuild();
+
+		// Clear the views cache.
+		cache_clear_all('*', 'cache_views');
+
+		// Clear the page cache.
+		cache_clear_all();
+
+		// Remove this view from cache so we can edit it properly.
+		views_object_cache_clear('view', $view->name);
