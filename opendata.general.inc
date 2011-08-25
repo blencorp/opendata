@@ -78,7 +78,6 @@ function opendata_general($form_state) {
 	$form['details']['title'] = array(
         '#type' => 'textfield',
 		'#title' => t('Title'),
-		'#default_value' => "Ready to Learn",
 		'#description' => t('Please enter the Title'),
 	);
 	$form['details']['description'] = array(
@@ -345,7 +344,7 @@ function opendata_general_submit($form, &$form_state) {
  *		- _opendata_get_tablename($data_table_id)
  *		- _opendata_formater($office_name)
  *		- _opendata_get_fields($data_table_id)
- *		- _opendata_build_view_fields($table_name, $colnames, $summary_fields)
+ *		- _opendata_build_view_summary_fields($table_name, $colnames, $summary_fields)
  *		- _opendata_build_style_options($colnames, $summary_fields)
  *		- opendata_create_preset($preset_name)
  *
@@ -378,6 +377,12 @@ function opendata_general_views(&$form_state) {
     $map_sub_title = $form_state['storage']['summary_values']['summary_map']['map_sub_title'];
     $map_lat = $form_state['storage']['summary_values']['summary_map']['map_lat'];
     $map_long = $form_state['storage']['summary_values']['summary_map']['map_long'];
+	
+	// check if "Include Map" has been checked for summary and detail pages
+	$doMap_summary = $form_state['storage']['summary_values']['summary_map']['map_option'];
+	$doMap_detail = $form_state['storage']['detail_map']['map_option'];
+	
+	//Detail Fields
 
 	//Build a perm URL
     $url = 'grants/' . $office . '/' . $fiscal_year . '/' . $title;
@@ -413,6 +418,9 @@ function opendata_general_views(&$form_state) {
     $summary_fields = array();
     $summary_fields = $form_state['storage']['summary_values']['summary_fields'];
     
+	// get an array of the detail page fields
+	$detail_fields = array();
+    $detail_fields = $form_state['storage']['published_values']['detail_fields'];
     
     ##
     ## Create a 'default' display
@@ -421,7 +429,7 @@ function opendata_general_views(&$form_state) {
     
     // build detail page fields
     $selected_fields = array();
-    $selected_fields = _opendata_build_view_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key);
+    $selected_fields = _opendata_build_view_summary_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key);
     $handler->override_option('fields', $selected_fields);
     
     $handler->override_option('access', array(
@@ -501,54 +509,56 @@ function opendata_general_views(&$form_state) {
     $handler->override_option('path', $url);
     
     
-    ##
-    ## Create a 'open layers' display to hold the OL data
-    ##
-    $handler = $view->new_display('openlayers', $full_title . ' map data', 'openlayers_1');
-    $handler->override_option('style_plugin', 'openlayers_data');
-    $handler->override_option('style_options', array(
-      'grouping' => '',
-      'data_source' => array(
-        'value' => array(
-        'other_latlon' => 'other_latlon',
-        ),
-        'other_lat' => $map_lat,
-        'other_lon' => $map_long,
-        'openlayers_wkt' => $title,
-        'other_top' => $title,
-        'other_right' => $title,
-        'other_bottom' => $title,
-        'other_left' => $title,
-        'name_field' => $map_title,
-        'description_field' => $map_sub_title,
-      ),
-    ));
-    
-    
-    ##
-    ## Create a 'block' display to show the map
-    ##
-    
-	// load opendata.preset.inc so we can call the preset function
-	module_load_include('inc', 'opendata', 'opendata.preset');
-
-    //Create a new OL preset
-    $isCreated = opendata_create_preset($unique_name);
-    
-    //Verify that the OL preset is created successfully
-    if ($isCreated) {
-        $handler = $view->new_display('block', $full_title . ' map block', 'block_2');
-        $handler->override_option('items_per_page', 0);
-        $handler->override_option('use_pager', '0');
-        $handler->override_option('style_plugin', 'openlayers_map');
-        $handler->override_option('style_options', array(
-          'preset' => $unique_name,
-        ));
-        $handler->override_option('block_description', '');
-        $handler->override_option('block_caching', -1);
-    } else {
-        drupal_set_message(t('An OpenLayer preset fails to be created. Please contact your Administrator.'), 'error');   
-    }
+    if ($doMap_summary == 1) {
+		##
+		## Create a 'open layers' display to hold the OL data
+		##
+		$handler = $view->new_display('openlayers', $full_title . ' map data', 'openlayers_1');
+		$handler->override_option('style_plugin', 'openlayers_data');
+		$handler->override_option('style_options', array(
+			'grouping' => '',
+			'data_source' => array(
+				'value' => array(
+				'other_latlon' => 'other_latlon',
+				),
+				'other_lat' => $map_lat,
+				'other_lon' => $map_long,
+				'openlayers_wkt' => $title,
+				'other_top' => $title,
+				'other_right' => $title,
+				'other_bottom' => $title,
+				'other_left' => $title,
+				'name_field' => $map_title,
+				'description_field' => $map_sub_title,
+			),
+		));
+	
+	    
+		##
+		## Create a 'block' display to show the map
+		##
+	
+		// load opendata.preset.inc so we can call the preset function
+		module_load_include('inc', 'opendata', 'opendata.preset');
+	
+		//Create a new OL preset
+		$isCreated = opendata_create_preset($unique_name);
+	
+		//Verify that the OL preset is created successfully
+		if ($isCreated) {
+		 $handler = $view->new_display('block', $full_title . ' map block', 'block_2');
+		 $handler->override_option('items_per_page', 0);
+		 $handler->override_option('use_pager', '0');
+		 $handler->override_option('style_plugin', 'openlayers_map');
+		 $handler->override_option('style_options', array(
+			 'preset' => $unique_name,
+		 ));
+		 $handler->override_option('block_description', '');
+		 $handler->override_option('block_caching', -1);
+		} else {
+		 drupal_set_message(t('An OpenLayer preset fails to be created. Please contact your Administrator.'), 'error');   
+		}
+	}
     
     
     ##
@@ -589,7 +599,7 @@ function opendata_general_views(&$form_state) {
     
     // build detail page fields
     $selected_fields = array();
-    $selected_fields = _opendata_build_view_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key);
+    $selected_fields = _opendata_build_detail_view_fields($data_table_name, $colnames, $detail_fields, $table_key);
     $handler->override_option('fields', $selected_fields);
     
     $handler->override_option('arguments', array(
@@ -613,7 +623,6 @@ function opendata_general_views(&$form_state) {
 
     #debug
     dpm($view);
-    
     
     //Build context
     $cname = $unique_name;
@@ -660,19 +669,18 @@ function opendata_general_views(&$form_state) {
 
 }
 
-function _opendata_build_view_fields($data_table_name, $colnames, $fields, $url, $table_key) {
-    
+function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fields, $url, $table_key) {
     
     #debug
-    #dpm($fields);
+    #dpm($s_fields);
     
     // Holds the built out views fields
-    $selected_fields = array();
+    $s_selected_fields = array();
     
     // IMPORTANT!
     // set the table key as the first field
     // to pass the right value to the detail page
-    $selected_fields[$table_key] = array(
+    $s_selected_fields[$table_key] = array(
         'id' => $table_key,
         'table' => $data_table_name,
         'field' => $table_key,
@@ -682,7 +690,7 @@ function _opendata_build_view_fields($data_table_name, $colnames, $fields, $url,
         'separator' => '',
         'exclude' => 1,
     );
-    $selected_fields[$table_key]['display_order'] = 0;
+    $s_selected_fields[$table_key]['display_order'] = 0;
     
 
     // find out the table key column name
@@ -698,21 +706,9 @@ function _opendata_build_view_fields($data_table_name, $colnames, $fields, $url,
         $sort_colname = 'field_display_order_' . $colname;   
      
         // If the field is selected, build the view field
-        if ($fields[$selected_colname] == 1) {
-            
-            #debug
-            #dpm($colname);
-            
-            /*
-            // If the column is first, add a path
-            if ($fields[$sort_colname] == 1) {
-                // do nothing
-            } else {
-                $url = '';
-            }
-            */
-            
-            $selected_fields[$colname] = array(
+        if ($s_fields[$selected_colname] == 1) {
+                        
+            $s_selected_fields[$colname] = array(
                 'id' => $colname,
                 'table' => $data_table_name,
                 'field' => $colname,
@@ -726,10 +722,10 @@ function _opendata_build_view_fields($data_table_name, $colnames, $fields, $url,
             );
             
             //
-            if ($fields[$sort_colname] != '' or $fields[$sort_colname] > 0) {
-                $selected_fields[$colname]['display_order'] = $fields[$sort_colname];
+            if ($s_fields[$sort_colname] != '' or $s_fields[$sort_colname] > 0) {
+                $s_selected_fields[$colname]['display_order'] = $s_fields[$sort_colname];
             } else {
-                $selected_fields[$colname]['display_order'] = $temp_display_order;
+                $s_selected_fields[$colname]['display_order'] = $temp_display_order;
                 $temp_display_order++;
             }
             
@@ -737,21 +733,113 @@ function _opendata_build_view_fields($data_table_name, $colnames, $fields, $url,
     }
     
     // sort the display order
-    $selected_fields = _opendata_sort_display_order($selected_fields);
+    $s_selected_fields = _opendata_sort_display_order($s_selected_fields, 1);
 
     #debug
-    #dpm ($selected_fields);  
+    #dpm($s_selected_fields);  
     
-    return $selected_fields;
+    return $s_selected_fields;
 }
 
-function _opendata_sort_display_order($selected_fields) {
+function _opendata_build_detail_view_fields($data_table_name, $colnames, $d_fields, $table_key) {
+    
+    #debug
+    #dpm($d_fields);
+    
+    // Holds the built out views fields
+    $d_selected_fields = array();
+    
+    // IMPORTANT!
+    // set the table key as the first field
+    // to pass the right value to the detail page
+    $d_selected_fields[$table_key] = array(
+        'id' => $table_key,
+        'table' => $data_table_name,
+        'field' => $table_key,
+        'label' => _opendata_formatter($table_key, 'space'),
+        'exclude' => 0,
+        'relationship' => 'none',
+        'separator' => '',
+        'exclude' => 1,
+    );
+    $d_selected_fields[$table_key]['display_order'] = 0;
+    
+
+    // find out the table key column name
+    $table_key_column = $colnames[$table_key];
+    
+    // a temporary display order field to hold, if the
+    // user does not enter any display order
+    $temp_display_order = 999;
+
+    foreach ($colnames as $colname) {    
+        // Add the field_ prefix to the column name
+        $selected_colname = 'field_selected_' . $colname;
+        $sort_colname = 'field_display_order_' . $colname;   
+     
+        // If the field is selected, build the view field
+        if ($d_fields[$selected_colname] == 1) {
+            
+            $d_selected_fields[$colname] = array(
+                'id' => $colname,
+                'table' => $data_table_name,
+                'field' => $colname,
+                'label' => '',
+                'exclude' => 0,
+                'relationship' => 'none',
+                'alter' => array(
+                    'alter_text' => 1,
+					'text' => '<div class="detail"><strong>' . _opendata_formatter($colname, 'space') . '</strong><p>[' . $colname . ']</p></div>',
+                ),
+            );
+            
+            //
+            if ($d_fields[$sort_colname] != '' or $d_fields[$sort_colname] > 0) {
+                $d_selected_fields[$colname]['display_order'] = $d_fields[$sort_colname];
+            } else {
+                $d_selected_fields[$colname]['display_order'] = $temp_display_order;
+                $temp_display_order++;
+            }
+            
+        }
+    }
+    
+    // sort the display order
+    $d_selected_fields = _opendata_sort_display_order($d_selected_fields);
+
+    #debug
+    #dpm($d_selected_fields);  
+    
+    return $d_selected_fields;
+}
+
+function _opendata_sort_display_order($selected_fields, $isSummary = 0) {
 
     foreach ($selected_fields as $key => $row) {
         $selected_field[$key] = $row['display_order'];
     }
     
     array_multisort($selected_field, SORT_ASC, $selected_fields);
+    
+	// remove path for only summary fields
+	if ($isSummary) {
+		// hold index of the array
+		$i = 0;
+		
+		foreach ($selected_fields as $key => $value) {        
+			
+			if ($i > 1) {
+				// delete the 'path' array item				
+				//unset($selected_field['alter']['path']);
+				unset($selected_fields[$key]['alter']['path']);
+			}
+			
+
+			// increment the current index
+			$i++;
+		}
+	}
+    #dpm($selected_fields);
     
     return $selected_fields;
 }
@@ -2041,3 +2129,4 @@ function opendata_display_csv() {
     return $handler;
 }
 */
+
