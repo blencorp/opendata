@@ -318,10 +318,12 @@ function opendata_general_submit($form, &$form_state) {
 	if ($form_state['clicked_button']['#id'] == 'edit-next-summary') {
 		$form_state['storage']['summary'] = TRUE;    
 		$form_state['storage']['general_values'] = $form_state['values'];
+		dpm($form_state);
 	}
 	else if ($form_state['clicked_button']['#id'] == 'edit-next-detail') {
 		$form_state['storage']['detail'] = TRUE;    
 		$form_state['storage']['summary_values'] = $form_state['values'];
+		dpm($form_state);
 	}
 	else if ($form_state['clicked_button']['#id'] == 'edit-publish') {
 		$form_state['storage']['published'] = TRUE;    
@@ -861,9 +863,20 @@ function _opendata_build_style_options($colnames, $fields) {
             $style_options_columns[$colname] = $colname;
                         
             //Add it to the info
-            $style_options_info[$colname] = array ('sortable' => 1, 'separator' => '',);
+
+						// check to see if the field is made sortable 
+						// then set style accordingly
+						$fld_sortable = 'field_sortable_' . $colname;
+						$is_sortable = $fields[$fld_sortable];
+						if ($is_sortable) {
+							$style_options_info[$colname] = array ('sortable' => 1, 'separator' => '',);
+						} else {
+							$style_options_info[$colname] = array ('sortable' => 0, 'separator' => '',);
+						}
         }
     }
+
+		//dpm($fields);
     
     $style_options = array (
       'grouping' => '',

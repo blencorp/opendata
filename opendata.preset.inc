@@ -59,14 +59,17 @@ function opendata_build_preset($pname) {
 			),
 		),
 		'behaviors' => array(
+			'openlayers_behavior_attribution' => array(),
+			'openlayers_behavior_popup' => array(),
+			'openlayers_behavior_fullscreen' => array(),
 			'openlayers_behavior_keyboarddefaults' => array(),
-			'openlayers_behavior_layerswitcher' => array(),
 			'openlayers_behavior_navigation' => array(
 				'zoomWheelEnabled' => 1,
 			),
 			'openlayers_behavior_panzoombar' => array(),
 			'openlayers_behavior_zoomtolayer' => array(
-				'zoomtolayer' => 'rtl_listing_openlayers_1', 
+				//'zoomtolayer' => 'rtl_listing_openlayers_1', 
+				'zoomtolayer' => $pname . '_openlayers_1', 
 				'point_zoom_level' => '5',
 			),
 		),
