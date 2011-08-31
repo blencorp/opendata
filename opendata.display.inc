@@ -9,7 +9,6 @@
  *		A $form array with user provided values.
  *
  */
-//function opendata_create_display(&$view, $type, $title, $text_description, $selected, $summary, $colnames) {
 function opendata_create_display(&$view, $type, &$form_state) {
 	
 	$data_table_id = $form_state['storage']['general_values']['details']['data_table'];
@@ -28,6 +27,17 @@ function opendata_create_display(&$view, $type, &$form_state) {
 	$map_sub_title = $form_state['storage']['summary_values']['summary_map']['map_sub_title'];
 	$map_lat = $form_state['storage']['summary_values']['summary_map']['map_lat'];
 	$map_long = $form_state['storage']['summary_values']['summary_map']['map_long'];
+
+	// get the list of column names
+	$colnames = array();
+	$colnames = _opendata_get_fields($data_table_id);
+
+	// get the name of the selected table key field
+	$table_key = $colnames[$table_key];
+
+	// set the detail perm url based on the selected table key field
+	$detail_url = $url . '/detail/[' . $table_key . ']?' . $table_key . '=[' . $table_key . ']';
+
 	
 	//Get array of the summary fields
 	$summary_fields = array();
