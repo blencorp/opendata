@@ -4,17 +4,17 @@
  * Implementation of hook_menu().
  */
 
-function opendata_menu() {	
-	$items['opendata'] = array(
-		'title' => 'OpenData', 
-		'description' => t('General Information'),
-		'page callback' => 'drupal_get_form',
-		'page arguments' => array('opendata_general'),
-		'access callback' => TRUE,
-		'file' => 'opendata.general.inc',
-	);
+function opendata_menu() {  
+  $items['opendata'] = array(
+    'title' => 'OpenData', 
+    'description' => t('General Information'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('opendata_general'),
+    'access callback' => TRUE,
+    'file' => 'opendata.general.inc',
+  );
 
-	$items['od'] = array(
+  $items['od'] = array(
     'title' => 'OpenData',
     'description' => t('General Information'),
     'page callback' => 'drupal_get_form',
@@ -22,6 +22,6 @@ function opendata_menu() {
     'access callback' => TRUE,
     'file' => 'opendata.main.inc',
   );
-	
-	return $items;
+  
+  return $items;
 }
