@@ -29,54 +29,54 @@
  */
 function opendata_general($form_state) {
 
-    if (isset($form_state['storage']['summary']) AND !isset($form_state['storage']['detail'])) {
-        return opendata_summary($form_state);
-    }
-    else if (isset($form_state['storage']['detail']) AND !isset($form_state['storage']['published'])) {
-        return opendata_detail($form_state);
-    }
-    else if (isset($form_state['storage']['published'])) {
-        return opendata_published($form_state);
-    }
+  if (isset($form_state['storage']['summary']) AND !isset($form_state['storage']['detail'])) {
+    return opendata_summary($form_state);
+  }
+  else if (isset($form_state['storage']['detail']) AND !isset($form_state['storage']['published'])) {
+    return opendata_detail($form_state);
+  }
+  else if (isset($form_state['storage']['published'])) {
+    return opendata_published($form_state);
+  }
 
-    //Basic Information
-    $form['details'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Grant Basic Information'),
-      '#tree' => TRUE,
-    );
-    $form['details']['data_table'] = array(
-      '#type' => 'select',
-      '#title' => t('Data Table (Don\'t see your table? <a href="#">Refresh</a> the list)'),
-      '#options' => _opendata_get_tables(),
-      '#description' => t('Please select the data table'),
-    );
-    $form['details']['office'] = array(
-        '#type' => 'select',
-        '#title' => t('Office'),
-        '#options' => array(
-            'OII'=>'Office of Innovation and Improvement',
-            'OESE'=>'Office of Elementary and Secondary Education',
-            'OPEPD'=>'Office of Planning, Evaluation and Policy Development',
-            'OPE'=>'Office of Post-Secondary Education',
-            'IES'=>'Institute of Education Sciences',
-            'FSA'=>'Federal Student Aid',
-            ),
-        '#description' => t('Please select the office'),
-    );
-    $form['details']['fiscal_year'] = array(
-        '#type' => 'select',
-        '#title' => t('Fiscal Year'),
-        '#options' => array(
-            '2010'=>'2010',
-            '2011'=>'2011',
-            '2012'=>'2012',
-            '2013'=>'2013',
-         ),
-        '#description' => t('Please select the fiscal year'),
-    );
+  //Basic Information
+  $form['details'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Grant Basic Information'),
+    '#tree' => TRUE,
+  );
+  $form['details']['data_table'] = array(
+    '#type' => 'select',
+    '#title' => t('Data Table (Don\'t see your table? <a href="?refresh=1">Refresh</a> the list)'),
+    '#options' => _opendata_get_tables(),
+    '#description' => t('Please select the data table'),
+  );
+  $form['details']['office'] = array(
+    '#type' => 'select',
+    '#title' => t('Office'),
+    '#options' => array(
+      'OII'=>'Office of Innovation and Improvement',
+      'OESE'=>'Office of Elementary and Secondary Education',
+      'OPEPD'=>'Office of Planning, Evaluation and Policy Development',
+      'OPE'=>'Office of Post-Secondary Education',
+      'IES'=>'Institute of Education Sciences',
+      'FSA'=>'Federal Student Aid',
+    ),
+    '#description' => t('Please select the office'),
+  );
+  $form['details']['fiscal_year'] = array(
+    '#type' => 'select',
+    '#title' => t('Fiscal Year'),
+    '#options' => array(
+      '2010'=>'2010',
+      '2011'=>'2011',
+      '2012'=>'2012',
+      '2013'=>'2013',
+    ),
+    '#description' => t('Please select the fiscal year'),
+  );
   $form['details']['title'] = array(
-        '#type' => 'textfield',
+    '#type' => 'textfield',
     '#title' => t('Title'),
     '#description' => t('Please enter the Title'),
   );
@@ -90,11 +90,15 @@ function opendata_general($form_state) {
     '#title' => t('More Info URL'), 
     '#description' => t('Please enter the more info URL'),
   );
-    $form['next_summary'] = array(
-        '#type' => 'submit',
-        '#value' => 'Next',
-    );
-    
+  $form['next_summary'] = array(
+     '#type' => 'submit',
+     '#value' => 'Next',
+  );
+  
+  if ($_GET['refresh'] == 1) {
+    drupal_set_message(t('Table Refreshed'));  
+  }
+  
   return $form;
 }
 
@@ -136,24 +140,24 @@ function opendata_summary($form_state) {
   
   //Show grant title, data table, fiscal year -- for reference
   $form['r_grant_title'] = array(
-      '#type' => 'item',
-      '#title' => t('Grant Title - ' . $step_1['title']),
+    '#type' => 'item',
+    '#title' => t('Grant Title - ' . $step_1['title']),
   );
   $form['r_data_table'] = array(
-      '#type' => 'item',
-      '#title' => t('Data Table - ' . _opendata_get_tablename($step_1['data_table'])),
+    '#type' => 'item',
+    '#title' => t('Data Table - ' . _opendata_get_tablename($step_1['data_table'])),
   );
   $form['r_fiscal_year'] = array(
-      '#type' => 'item',
-      '#title' => t('Fiscal Year - ' . $step_1['fiscal_year']),
+    '#type' => 'item',
+    '#title' => t('Fiscal Year - ' . $step_1['fiscal_year']),
   );
   
   //Other summary related fields
   $form['summary']['table_key'] = array(
-      '#type' => 'select',
-      '#title' => t('Table Key'),
-      '#options' => _opendata_get_fields($step_1['data_table']),
-      '#description' => t('Please choose the unique column'),
+    '#type' => 'select',
+    '#title' => t('Table Key'),
+    '#options' => _opendata_get_fields($step_1['data_table']),
+    '#description' => t('Please choose the unique column'),
   );   
   $form['summary']['page_limit'] = array(
     '#type' => 'textfield',
@@ -173,38 +177,38 @@ function opendata_summary($form_state) {
   
   //Map field set
   $form['summary_map'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Map Options'),
-      '#tree' => TRUE,
+    '#type' => 'fieldset',
+    '#title' => t('Map Options'),
+    '#tree' => TRUE,
   );
   $form['summary_map']['map_option'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Include Map'),
-      '#description' => t('Please check if you would like to show a map.'),
+    '#type' => 'checkbox',
+    '#title' => t('Include Map'),
+    '#description' => t('Please check if you would like to show a map.'),
   );
   $form['summary_map']['map_title'] = array(
-      '#type' => 'select',
-      '#title' => t('Title'),
-      '#options' => _opendata_get_fields($step_1['data_table']),
-      '#description' => t('Please choose the column that you would like to use as the title of the map.'),
+    '#type' => 'select',
+    '#title' => t('Title'),
+    '#options' => _opendata_get_fields($step_1['data_table']),
+    '#description' => t('Please choose the column that you would like to use as the title of the map.'),
   );
   $form['summary_map']['map_sub_title'] = array(
-      '#type' => 'select',
-      '#title' => t('Sub Title'),
-      '#options' => _opendata_get_fields($step_1['data_table']),
-      '#description' => t('Please choose the column that you would like to use as the sub title of the map.'),
+    '#type' => 'select',
+    '#title' => t('Sub Title'),
+    '#options' => _opendata_get_fields($step_1['data_table']),
+    '#description' => t('Please choose the column that you would like to use as the sub title of the map.'),
   );
   $form['summary_map']['map_lat'] = array(
-      '#type' => 'select',
-      '#title' => t('Latitude'),
-      '#options' => _opendata_get_fields($step_1['data_table']),
-      '#description' => t('Please choose the column that holds the latitude value.'),
+    '#type' => 'select',
+    '#title' => t('Latitude'),
+    '#options' => _opendata_get_fields($step_1['data_table']),
+    '#description' => t('Please choose the column that holds the latitude value.'),
   );
   $form['summary_map']['map_long'] = array(
-      '#type' => 'select',
-      '#title' => t('Longitude'),
-      '#options' => _opendata_get_fields($step_1['data_table']),
-      '#description' => t('Please choose the column that holds the longitude value.'),
+    '#type' => 'select',
+    '#title' => t('Longitude'),
+    '#options' => _opendata_get_fields($step_1['data_table']),
+    '#description' => t('Please choose the column that holds the longitude value.'),
   );
     
   $form['next_detail'] = array(
@@ -245,34 +249,34 @@ function opendata_summary($form_state) {
 function opendata_detail($form_state) {
     
     //Detail Page
-    $step_2 = array();
+  $step_2 = array();
     
-    $step_2['title'] = $form_state['storage']['general_values']['details']['title'];              //Get title of the dataset
-    $step_2['data_table'] = $form_state['storage']['general_values']['details']['data_table'];    //Get dataset table
-    $step_2['fiscal_year'] = $form_state['storage']['general_values']['details']['fiscal_year'];    //Get dataset table
+  $step_2['title'] = $form_state['storage']['general_values']['details']['title'];              //Get title of the dataset
+  $step_2['data_table'] = $form_state['storage']['general_values']['details']['data_table'];    //Get dataset table
+  $step_2['fiscal_year'] = $form_state['storage']['general_values']['details']['fiscal_year'];    //Get dataset table
     
-    //Show grant title, data table, fiscal year -- for reference
-    $form['r_grant_title'] = array(
-        '#type' => 'item',
-        '#title' => t('Grant Title - ' . $step_2['title']),
-    );
-    $form['r_data_table'] = array(
-        '#type' => 'item',
-        '#title' => t('Data Table - ' . _opendata_get_tablename($step_2['data_table'])),
-    );
-    $form['r_fiscal_year'] = array(
-        '#type' => 'item',
-        '#title' => t('Fiscal Year - ' . $step_2['fiscal_year']),
-    );
+  //Show grant title, data table, fiscal year -- for reference
+  $form['r_grant_title'] = array(
+    '#type' => 'item',
+    '#title' => t('Grant Title - ' . $step_2['title']),
+  );
+  $form['r_data_table'] = array(
+    '#type' => 'item',
+    '#title' => t('Data Table - ' . _opendata_get_tablename($step_2['data_table'])),
+  );
+  $form['r_fiscal_year'] = array(
+    '#type' => 'item',
+    '#title' => t('Fiscal Year - ' . $step_2['fiscal_year']),
+  );
         
-    //Append the columns based on the selected data table
-    $form[] = _opendata_build_detail_listing($step_2['data_table']);  
+  //Append the columns based on the selected data table
+  $form[] = _opendata_build_detail_listing($step_2['data_table']);  
     
-    $form['detail_map']['map_option'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Include Map'),
-        '#description' => t('Please check if you would like to show a map.'),
-    );
+  $form['detail_map']['map_option'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Include Map'),
+    '#description' => t('Please check if you would like to show a map.'),
+  );
     
   $form['publish'] = array(
     '#type' => 'submit',
@@ -305,10 +309,10 @@ function opendata_detail($form_state) {
  */
 function opendata_published(&$form_state) {
     
-    #debug
-    #dpm($form_state);
+  #debug
+  #dpm($form_state);
     
-    opendata_general_views($form_state);
+  opendata_general_views($form_state);
 }
 
 /**
@@ -404,30 +408,6 @@ function opendata_general_views(&$form_state) {
   $view->api_version = 2;
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
-  /*
-  // get the list of column names
-  $colnames = array();
-  $colnames = _opendata_get_fields($data_table_id);
-
-  // get the name of the selected table key field
-  $table_key = $colnames[$table_key];
-
-  // set the detail perm url based on the selected table key field
-  $detail_url = $url . '/detail/[' . $table_key . ']?' . $table_key . '=[' . $table_key . ']';
-
-  //Get array of the summary fields
-  $summary_fields = array();
-  $summary_fields = $form_state['storage']['summary_values']['summary_fields'];
-   
-  // get an array of the detail page fields
-  $detail_fields = array();
-  $detail_fields = $form_state['storage']['published_values']['detail_fields'];
-    
-  // get selected fields
-  $selected_fields = array();
-  $selected_fields = _opendata_build_view_summary_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key);
-  */
-
   // load the view display creator function 
   module_load_include('inc', 'opendata', 'opendata.display');
 
@@ -467,7 +447,7 @@ function opendata_general_views(&$form_state) {
       $type = 'map_block';
       opendata_create_display(&$view, $type, &$form_state);
     } else {
-     drupal_set_message(t('An OpenLayer preset fails to be created. Please contact your Administrator.'), 'error');   
+      drupal_set_message(t('An OpenLayer preset fails to be created. Please contact your Administrator.'), 'error');   
     }
   }
     
@@ -533,155 +513,153 @@ function opendata_general_views(&$form_state) {
 
 function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fields, $url, $table_key) {
     
-    #debug
-    #dpm($s_fields);
+  #debug
+  #dpm($s_fields);
     
-    // Holds the built out views fields
-    $s_selected_fields = array();
+  // Holds the built out views fields
+  $s_selected_fields = array();
     
-    // IMPORTANT!
-    // set the table key as the first field
-    // to pass the right value to the detail page
-    $s_selected_fields[$table_key] = array(
-        'id' => $table_key,
+  // IMPORTANT!
+  // set the table key as the first field
+  // to pass the right value to the detail page
+  $s_selected_fields[$table_key] = array(
+    'id' => $table_key,
+    'table' => $data_table_name,
+    'field' => $table_key,
+    'label' => _opendata_formatter($table_key, 'space'),
+    'exclude' => 0,
+    'relationship' => 'none',
+    'separator' => '',
+    'exclude' => 1,
+  );
+  $s_selected_fields[$table_key]['display_order'] = 0;  
+
+  // find out the table key column name
+  $table_key_column = $colnames[$table_key];
+    
+  // a temporary display order field to hold, if the
+  // user does not enter any display order
+  $temp_display_order = 999;
+
+  foreach ($colnames as $colname) {    
+    // Add the field_ prefix to the column name
+    $selected_colname = 'field_selected_' . $colname;
+    $sort_colname = 'field_display_order_' . $colname;   
+     
+    // If the field is selected, build the view field
+    if ($s_fields[$selected_colname] == 1) {
+                   
+      $s_selected_fields[$colname] = array(
+        'id' => $colname,
         'table' => $data_table_name,
-        'field' => $table_key,
-        'label' => _opendata_formatter($table_key, 'space'),
+        'field' => $colname,
+        'label' => _opendata_formatter($colname, 'space'),
         'exclude' => 0,
         'relationship' => 'none',
-        'separator' => '',
-        'exclude' => 1,
-    );
-    $s_selected_fields[$table_key]['display_order'] = 0;
-    
-
-    // find out the table key column name
-    $table_key_column = $colnames[$table_key];
-    
-    // a temporary display order field to hold, if the
-    // user does not enter any display order
-    $temp_display_order = 999;
-
-    foreach ($colnames as $colname) {    
-        // Add the field_ prefix to the column name
-        $selected_colname = 'field_selected_' . $colname;
-        $sort_colname = 'field_display_order_' . $colname;   
-     
-        // If the field is selected, build the view field
-        if ($s_fields[$selected_colname] == 1) {
-                        
-            $s_selected_fields[$colname] = array(
-                'id' => $colname,
-                'table' => $data_table_name,
-                'field' => $colname,
-                'label' => _opendata_formatter($colname, 'space'),
-                'exclude' => 0,
-                'relationship' => 'none',
-                'alter' => array(
-                    'make_link' => 1,
-                    'path' => $url,
-                ),
-            );
+        'alter' => array(
+          'make_link' => 1,
+          'path' => $url,
+        ),
+      );
             
-            //
-            if ($s_fields[$sort_colname] != '' or $s_fields[$sort_colname] > 0) {
-                $s_selected_fields[$colname]['display_order'] = $s_fields[$sort_colname];
-            } else {
-                $s_selected_fields[$colname]['display_order'] = $temp_display_order;
-                $temp_display_order++;
-            }
+      //
+      if ($s_fields[$sort_colname] != '' or $s_fields[$sort_colname] > 0) {
+        $s_selected_fields[$colname]['display_order'] = $s_fields[$sort_colname];
+      } else {
+        $s_selected_fields[$colname]['display_order'] = $temp_display_order;
+        $temp_display_order++;
+      }
             
-        }
     }
+  }
     
-    // sort the display order
-    $s_selected_fields = _opendata_sort_display_order($s_selected_fields, 1);
+  // sort the display order
+  $s_selected_fields = _opendata_sort_display_order($s_selected_fields, 1);
 
-    #debug
-    #dpm($s_selected_fields);  
-    
-    return $s_selected_fields;
+  #debug
+  #dpm($s_selected_fields);  
+  
+  return $s_selected_fields;
 }
 
 function _opendata_build_detail_view_fields($data_table_name, $colnames, $d_fields, $table_key) {
     
-    #debug
-    #dpm($d_fields);
-    
-    // Holds the built out views fields
-    $d_selected_fields = array();
-    
-    // IMPORTANT!
-    // set the table key as the first field
-    // to pass the right value to the detail page
-    $d_selected_fields[$table_key] = array(
-        'id' => $table_key,
+  #debug
+  #dpm($d_fields);
+  
+  // Holds the built out views fields
+  $d_selected_fields = array();
+  
+  // IMPORTANT!
+  // set the table key as the first field
+  // to pass the right value to the detail page
+  $d_selected_fields[$table_key] = array(
+    'id' => $table_key,
+    'table' => $data_table_name,
+    'field' => $table_key,
+    'label' => _opendata_formatter($table_key, 'space'),
+    'exclude' => 0,
+    'relationship' => 'none',
+      'separator' => '',
+      'exclude' => 1,
+  );
+  $d_selected_fields[$table_key]['display_order'] = 0;
+
+  // find out the table key column name
+  $table_key_column = $colnames[$table_key];
+  
+  // a temporary display order field to hold, if the
+  // user does not enter any display order
+  $temp_display_order = 999;
+
+  foreach ($colnames as $colname) {    
+    // Add the field_ prefix to the column name
+    $selected_colname = 'field_selected_' . $colname;
+    $sort_colname = 'field_display_order_' . $colname;   
+  
+    // If the field is selected, build the view field
+    if ($d_fields[$selected_colname] == 1) {
+          
+      $d_selected_fields[$colname] = array(
+        'id' => $colname,
         'table' => $data_table_name,
-        'field' => $table_key,
-        'label' => _opendata_formatter($table_key, 'space'),
+        'field' => $colname,
+        'label' => '',
         'exclude' => 0,
         'relationship' => 'none',
-        'separator' => '',
-        'exclude' => 1,
-    );
-    $d_selected_fields[$table_key]['display_order'] = 0;
-    
-
-    // find out the table key column name
-    $table_key_column = $colnames[$table_key];
-    
-    // a temporary display order field to hold, if the
-    // user does not enter any display order
-    $temp_display_order = 999;
-
-    foreach ($colnames as $colname) {    
-        // Add the field_ prefix to the column name
-        $selected_colname = 'field_selected_' . $colname;
-        $sort_colname = 'field_display_order_' . $colname;   
-     
-        // If the field is selected, build the view field
-        if ($d_fields[$selected_colname] == 1) {
-            
-            $d_selected_fields[$colname] = array(
-                'id' => $colname,
-                'table' => $data_table_name,
-                'field' => $colname,
-                'label' => '',
-                'exclude' => 0,
-                'relationship' => 'none',
-                'alter' => array(
-                    'alter_text' => 1,
+        'alter' => array(
+          'alter_text' => 1,
           'text' => '<div class="detail"><strong>' . _opendata_formatter($colname, 'space') . '</strong><p>[' . $colname . ']</p></div>',
-                ),
-            );
+        ),
+      );
             
-            //
-            if ($d_fields[$sort_colname] != '' or $d_fields[$sort_colname] > 0) {
-                $d_selected_fields[$colname]['display_order'] = $d_fields[$sort_colname];
-            } else {
-                $d_selected_fields[$colname]['display_order'] = $temp_display_order;
-                $temp_display_order++;
-            }
-            
-        }
+      //
+      if ($d_fields[$sort_colname] != '' or $d_fields[$sort_colname] > 0) {
+        $d_selected_fields[$colname]['display_order'] = $d_fields[$sort_colname];
+      } else {
+        $d_selected_fields[$colname]['display_order'] = $temp_display_order;
+        $temp_display_order++;
+      }
+      
     }
+  }
     
-    // sort the display order
-    $d_selected_fields = _opendata_sort_display_order($d_selected_fields);
+  // sort the display order
+  $d_selected_fields = _opendata_sort_display_order($d_selected_fields);
 
-    #debug
-    #dpm($d_selected_fields);  
+  #debug
+  #dpm($d_selected_fields);  
     
-    return $d_selected_fields;
+  return $d_selected_fields;
 }
 
 function _opendata_sort_display_order($selected_fields, $isSummary = 0) {
 
-    foreach ($selected_fields as $key => $row) {
-        $selected_field[$key] = $row['display_order'];
-    }
+  foreach ($selected_fields as $key => $row) {
+    $selected_field[$key] = $row['display_order'];
+  }
     
-    array_multisort($selected_field, SORT_ASC, $selected_fields);
+  array_multisort($selected_field, SORT_ASC, $selected_fields);
     
   // remove path for only summary fields
   if ($isSummary) {
@@ -696,108 +674,52 @@ function _opendata_sort_display_order($selected_fields, $isSummary = 0) {
         unset($selected_fields[$key]['alter']['path']);
       }
       
-
       // increment the current index
       $i++;
     }
   }
-    #dpm($selected_fields);
+
+  #debug
+  #dpm($selected_fields);
     
-    return $selected_fields;
+  return $selected_fields;
 }
 
 function _opendata_build_style_options($colnames, $fields) {
 
-    $style_options = array();
-    $style_options_columns = array();
-    $style_options_info = array();
+  $style_options = array();
+  $style_options_columns = array();
+  $style_options_info = array();
     
-    foreach ($colnames as $colname) {    
-        //Add the field_ prefix to the column name
-        $selected_colname = 'field_selected_' . $colname;
+  foreach ($colnames as $colname) {    
+    //Add the field_ prefix to the column name
+    $selected_colname = 'field_selected_' . $colname;
         
-        //If the field is selected, build the view field
-        if ($fields[$selected_colname] == 1) {
+    //If the field is selected, build the view field
+    if ($fields[$selected_colname] == 1) {
             
-            //Add it to the columns
-            $style_options_columns[$colname] = $colname;
+      //Add it to the columns
+      $style_options_columns[$colname] = $colname;
                         
-            //Add it to the info
-            $style_options_info[$colname] = array ('sortable' => 1, 'separator' => '',);
-        }
+      //Add it to the info
+      $style_options_info[$colname] = array ('sortable' => 1, 'separator' => '',);
     }
+  }
     
-    $style_options = array (
-      'grouping' => '',
-      'override' => 1,
-      'sticky' => 1,
-      'order' => 'asc',
-      'columns' => $style_options_columns,
-      'info' => $style_options_info,
-      'default' => -1,
-    );
+  $style_options = array (
+    'grouping' => '',
+    'override' => 1,
+    'sticky' => 1,
+    'order' => 'asc',
+    'columns' => $style_options_columns,
+    'info' => $style_options_info,
+    'default' => -1,
+  );
     
-    #Debug
-    #dpm($style_options);
+  #debug
+  #dpm($style_options);
     
-    return $style_options;
-    
-    /* View Template: Reference Only */
-    /*
-          'grouping' => '',
-      'override' => 1,
-      'sticky' => 1,
-      'order' => 'asc',
-      'columns' => array(
-        'ID' => 'ID',
-        'awardNo' => 'awardNo',
-        'projectTitle' => 'projectTitle',
-        'projectDirector' => 'projectDirector',
-        'amount' => 'amount',
-        'teacherNo' => 'teacherNo',
-        'districtNo' => 'districtNo',
-        'grades' => 'grades',
-      ),
-      
-      'info' => array(
-        'ID' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'awardNo' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'projectTitle' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'projectDirector' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'amount' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'teacherNo' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'districtNo' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'grades' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-      ),
-      'default' => -1,
-    ));
-
-    */
-
+  return $style_options;
 }
 
 
@@ -823,20 +745,20 @@ function _opendata_build_summary_listing($tableid) {
   );
   
   $form['summary_fields']['lbl_display_fields'] = array(
-      '#type' => 'item',
-      '#title' => t('Summary Listing Fields'),
+    '#type' => 'item',
+    '#title' => t('Summary Listing Fields'),
   );
   $form['summary_fields']['lbl_display_order'] = array(
-      '#type' => 'item',
-      '#title' => t('Display Field'),
+    '#type' => 'item',
+    '#title' => t('Display Field'),
   );
   $form['summary_fields']['lbl_allow_search'] = array(
-      '#type' => 'item',
-      '#title' => t('Allow Search?'),
+    '#type' => 'item',
+    '#title' => t('Allow Search?'),
   );
   $form['summary_fields']['lbl_sortable'] = array(
-      '#type' => 'item',
-      '#title' => t('Sortable?'),
+    '#type' => 'item',
+    '#title' => t('Sortable?'),
   );
   
   //Build the columns
@@ -875,10 +797,10 @@ function _opendata_build_summary_listing($tableid) {
     $form['summary_fields'][$filter_options] = array(
       '#type' => 'select',
       '#options' => array(
-          'na'=>'',
-          'textfield'=>'Text Search',
-          'select'=>'Dropdown',
-          'checkbox'=>'Checkboxes',
+        'na'=>'',
+        'textfield'=>'Text Search',
+        'select'=>'Dropdown',
+        'checkbox'=>'Checkboxes',
       ),
     );
     
@@ -887,7 +809,7 @@ function _opendata_build_summary_listing($tableid) {
     $form['summary_fields'][$sortable] = array('#type' => 'checkbox', '#label' => 'Sortable');
   }
   
-  //Debug
+  //debug
   //dpm($form);
   
   return $form;
@@ -904,84 +826,85 @@ function _opendata_build_summary_listing($tableid) {
  */
 function _opendata_build_detail_listing($tableid) {
     
-    //Debug
-    //dpm($tableid);
+  //debug
+  //dpm($tableid);
     
-    $form['detail_fields'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Fields to Include on Detail Page'),
-        '#tree' => TRUE,
-        '#prefix' => '<div class="opendata-detail-fields">',
-        '#suffix' => '</div>',
-    );
+  $form['detail_fields'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Fields to Include on Detail Page'),
+    '#tree' => TRUE,
+    '#prefix' => '<div class="opendata-detail-fields">',
+    '#suffix' => '</div>',
+  );
     
-    //Build the columns
-    $colnames = array();
-    $colnames = _opendata_get_fields($tableid);
+  //Build the columns
+  $colnames = array();
+  $colnames = _opendata_get_fields($tableid);
     
-    $form['detail_fields']['lbl_display_fields'] = array(
-      '#type' => 'item',
-      '#title' => t('Detail Listing Fields'),
+  $form['detail_fields']['lbl_display_fields'] = array(
+    '#type' => 'item',
+    '#title' => t('Detail Listing Fields'),
   );
   $form['detail_fields']['lbl_display_order'] = array(
-      '#type' => 'item',
-      '#title' => t('Display Field'),
+    '#type' => 'item',
+    '#title' => t('Display Field'),
   );
   $form['detail_fields']['lbl_title'] = array(
-      '#type' => 'item',
-      '#title' => t('Title'),
+    '#type' => 'item',
+    '#title' => t('Title'),
   );
   $form['detail_fields']['lbl_line_break'] = array(
-      '#type' => 'item',
-      '#title' => t('Line Break'),
+    '#type' => 'item',
+    '#title' => t('Line Break'),
   );
   $form['detail_fields']['lbl_badge'] = array(
-      '#type' => 'item',
-      '#title' => t('Badge'),
+    '#type' => 'item',
+    '#title' => t('Badge'),
   );
     
-    // Build the fields
-    $fields = array();
+  // Build the fields
+  $fields = array();
     
-    foreach ($colnames as $colname) {
-      $fields[$colname] = array(
-        'id' => $colname,
-        'table' => $rawtablename,
-        'field' => $colname,
-        'label' => $colname,
-        'exclude' => 0,
-        'relationship' => 'none',
-      );
+  foreach ($colnames as $colname) {
+    $fields[$colname] = array(
+      'id' => $colname,
+      'table' => $rawtablename,
+      'field' => $colname,
+      'label' => $colname,
+      'exclude' => 0,
+      'relationship' => 'none',
+    );
       
-      //Generate the table fields checkboxes
-      $selected = 'field_selected_' . $colname;
-      $form['detail_fields'][$selected] = array('#type' => 'checkbox', '#title' => t($colname));
+    //Generate the table fields checkboxes
+    $selected = 'field_selected_' . $colname;
+    $form['detail_fields'][$selected] = array('#type' => 'checkbox', '#title' => t($colname));
       
-      //Generate Sort order fields
-      $display_order = 'field_display_order_' . $colname;
-      $form['detail_fields'][$display_order] = array('#type' => 'textfield', '#size' => 10);
+    //Generate Sort order fields
+    $display_order = 'field_display_order_' . $colname;
+    $form['detail_fields'][$display_order] = array('#type' => 'textfield', '#size' => 10);
       
-      // generate title option
-      $detail_title = 'field_detail_title_' . $colname;
-      $form['detail_fields'][$detail_title] = array(
-        '#type' => 'radios',
-        '#options' => array(
-            '0' => ''
-        ),
-      );
+    // generate title option
+    $detail_title = 'field_detail_title_' . $colname;
+    $form['detail_fields'][$detail_title] = array(
+      '#type' => 'radios',
+      '#options' => array(
+        '0' => ''
+      ),
+    );
       
-      // generate the line break
-      $line_break = 'field_line_break_' . $colname;
-      $form['detail_fields'][$line_break] = array('#type' => 'checkbox');
-      
+    // generate the line break
+    $line_break = 'field_line_break_' . $colname;
+    $form['detail_fields'][$line_break] = array('#type' => 'checkbox');
+    
       // generate the badge field
-      $badge = 'field_badge_' . $colname;
-      $form['detail_fields'][$badge] = array('#type' => 'checkbox');
-    }
-    
-    //dpm($form);
-    
-    return $form;
+    $badge = 'field_badge_' . $colname;
+    $form['detail_fields'][$badge] = array('#type' => 'checkbox');
+  }
+   
+  #debug 
+  #dpm($form);
+  
+  return $form;
 }
 
 /**
@@ -995,25 +918,25 @@ function _opendata_build_detail_listing($tableid) {
  */
 function _opendata_get_fields($table_name) {
 
-    $pk = NULL;
-    $colnames = array();
-    $sql = "SELECT colname, primarykey
+  $pk = NULL;
+  $colnames = array();
+  $sql = "SELECT colname, primarykey
             FROM {tw_columns}
             WHERE ignorecol=0 AND twtid=%d
             ORDER BY weight";
-    $colresult = db_query($sql, $table_name);
+  $colresult = db_query($sql, $table_name);
               
-    while ($colrow = db_fetch_object($colresult)) {
-      $colnames[] = $colrow->colname;
-      if ($colrow->primarykey) {
-        $pk = $colrow->colname;
-      }
+  while ($colrow = db_fetch_object($colresult)) {
+    $colnames[] = $colrow->colname;
+    if ($colrow->primarykey) {
+      $pk = $colrow->colname;
     }
+  }
     
-    #debug
-    #dpm($colnames);
+  #debug
+  #dpm($colnames);
     
-    return $colnames;
+  return $colnames;
 }
 
 /**
@@ -1026,45 +949,45 @@ function _opendata_get_fields($table_name) {
  */
 function _opendata_get_tables() {
     
-    //Set array to hold the table names
-    $tablenames = array();
+  //Set array to hold the table names
+  $tablenames = array();
 
-    // Go through each import table and create default views for them
-    // Skip any without a primary key
-     $sql = "SELECT tt.twtid,tt.tablename,tt.dbconnection,tt.view_name,COUNT(*) AS cnt
+  // Go through each import table and create default views for them
+  // Skip any without a primary key
+  $sql = "SELECT tt.twtid,tt.tablename,tt.dbconnection,tt.view_name,COUNT(*) AS cnt
           FROM {tw_tables} tt
           INNER JOIN {tw_columns} tc ON tt.twtid=tc.twtid
           WHERE tt.provide_view=1 AND tc.primarykey=1
           GROUP BY tt.twtid,tt.tablename,tt.view_name,tt.dbconnection";
-    $tblresult = db_query($sql);
+  $tblresult = db_query($sql);
 
-    while ($tblrow = db_fetch_object($tblresult)) {
-        // For a default view to be possible, the table must have a single primary key field
-        if ($tblrow->cnt != 1) {
-          continue;
-        }
-        
-        $twtid = $tblrow->twtid;
-        $tablename = $tblrow->tablename;
-        $view_name = $tblrow->view_name;
-        $dbconnection = $tblrow->dbconnection;
-        if ($dbconnection == 'default') {
-          $rawtablename = schema_unprefix_table($tablename);
-          $cleantablename = $rawtablename;
-        }
-        else {
-          $truedbname = tw_get_dbinfo($dbconnection, 'name');
-          $rawtablename = tw_qualified_tablename($dbconnection, $tablename);
-          $cleantablename = $truedbname . '_' . $tablename;
-        }
-        
-        $tablenames[$twtid] = $tablename;
+  while ($tblrow = db_fetch_object($tblresult)) {
+    // For a default view to be possible, the table must have a single primary key field
+    if ($tblrow->cnt != 1) {
+      continue;
     }
+        
+    $twtid = $tblrow->twtid;
+    $tablename = $tblrow->tablename;
+    $view_name = $tblrow->view_name;
+    $dbconnection = $tblrow->dbconnection;
+    if ($dbconnection == 'default') {
+      $rawtablename = schema_unprefix_table($tablename);
+      $cleantablename = $rawtablename;
+    }
+    else {
+      $truedbname = tw_get_dbinfo($dbconnection, 'name');
+      $rawtablename = tw_qualified_tablename($dbconnection, $tablename);
+      $cleantablename = $truedbname . '_' . $tablename;
+    }
+        
+    $tablenames[$twtid] = $tablename;
+  }
     
-    #Debug
-    #dpm($tablenames);
+  #debug
+  #dpm($tablenames);
     
-    return $tablenames;
+  return $tablenames;
 }
 
 /**
@@ -1078,12 +1001,12 @@ function _opendata_get_tables() {
  */
 function _opendata_get_tablename($tableid) {
 
-    //Get table name
-    $data_table_names = array();
-    $data_table_names = _opendata_get_tables();
-    $data_table_name = $data_table_names[$tableid];
-    
-    return $data_table_name;
+  //Get table name
+  $data_table_names = array();
+  $data_table_names = _opendata_get_tables();
+  $data_table_name = $data_table_names[$tableid];
+  
+  return $data_table_name;
 }
 
 /**
@@ -1096,24 +1019,24 @@ function _opendata_get_tablename($tableid) {
  *   A formatted text string
  */
 function _opendata_formatter($val, $type) {
-    switch ($type) {
-        case 'lower':
-            $val = strtolower($val);
-            break;
-        case 'hyphen':
-            $val = str_replace(" ", "-", strtolower($val));
-            break;
-        case 'html':
-            nl2br($val);
-            break;
-        case 'underscore':
-            $val = str_replace(" ", "_", strtolower($val));
-            break;
-        case 'space':
-            $val = str_replace("_", " ", ucwords($val));
-            break;
-    }
+  switch ($type) {
+    case 'lower':
+      $val = strtolower($val);
+      break;
+    case 'hyphen':
+      $val = str_replace(" ", "-", strtolower($val));
+      break;
+    case 'html':
+      nl2br($val);
+      break;
+    case 'underscore':
+      $val = str_replace(" ", "_", strtolower($val));
+      break;
+    case 'space':
+      $val = str_replace("_", " ", ucwords($val));
+      break;
+  }
     
-    return $val;
+  return $val;
 }
 

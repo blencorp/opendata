@@ -5,16 +5,20 @@
  */
 
 function opendata_menu() {  
-  $items['opendata'] = array(
+
+  $items = array();
+  
+  $items['admin/content/opendata'] = array(
     'title' => 'OpenData', 
     'description' => t('General Information'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('opendata_general'),
-    'access callback' => TRUE,
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
     'file' => 'opendata.general.inc',
   );
-
-  $items['od'] = array(
+  /*
+  $items['admin/content/od'] = array(
     'title' => 'OpenData',
     'description' => t('General Information'),
     'page callback' => 'drupal_get_form',
@@ -22,6 +26,6 @@ function opendata_menu() {
     'access callback' => TRUE,
     'file' => 'opendata.main.inc',
   );
-  
+  */
   return $items;
 }
