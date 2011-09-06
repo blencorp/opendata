@@ -13,15 +13,6 @@ function opendata_menu() {
 		'access callback' => TRUE,
 		'file' => 'opendata.general.inc',
 	);
-
-	$items['od'] = array(
-    'title' => 'OpenData',
-    'description' => t('General Information'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('opendata_general'),
-    'access callback' => TRUE,
-    'file' => 'opendata.main.inc',
-  );
 	
 	return $items;
 }

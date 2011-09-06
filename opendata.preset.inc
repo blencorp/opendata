@@ -15,16 +15,9 @@ function opendata_create_preset($preset_name) {
 	$result = openlayers_preset_save($preset);
 
 	if ($result) {
-		//drupal_set_message('Sucess: preset ' . $pname . ' created.', 'status');
-		drupal_set_message(t('Success: preset !pname has been created.', array('!pname' => $pname)), 'status');
-
-		// Clear the page cache.
-		//cache_clear_all();
-
 		return true;
 	} else {
 		drupal_set_message(t('Error: could not create preset !pname.', array('!pname' => $pname)), 'error');
-		//drupal_set_message('Error: could not create preset ' . $pname, 'error');
 		return false;
 	}
 }
@@ -33,10 +26,10 @@ function opendata_create_preset($preset_name) {
  * A clone of hook_openlayers_presets()
  */
 function opendata_build_preset($pname) {
-
 	//TODO: check to make sure we have the proper form id
-
 	$preset = new stdClass();
+	$preset->disabled = FALSE;
+	$preset->api_version = 1;
 	$preset->name = $pname;
 	$preset->title = $pname;
 	$preset->description = "A preset created by OpenData module."; 
@@ -48,6 +41,7 @@ function opendata_build_preset($pname) {
 		'image_path' => 'profiles/ngp_deped/openlayers/dark/',
 		'css_path' => '',
 		'proxy_host' => '',
+		'hide_empty_map' => 0,
 		'center' => array( 
 			'initial' => array(
 				'centerpoint' => '-96.767578121148, 37.926867600188',
@@ -61,14 +55,15 @@ function opendata_build_preset($pname) {
 		'behaviors' => array(
 			'openlayers_behavior_attribution' => array(),
 			'openlayers_behavior_popup' => array(),
-			'openlayers_behavior_fullscreen' => array(),
+			'openlayers_behavior_fullscreen' => array(
+				'activated' => 0,
+			),
 			'openlayers_behavior_keyboarddefaults' => array(),
 			'openlayers_behavior_navigation' => array(
 				'zoomWheelEnabled' => 1,
 			),
 			'openlayers_behavior_panzoombar' => array(),
 			'openlayers_behavior_zoomtolayer' => array(
-				//'zoomtolayer' => 'rtl_listing_openlayers_1', 
 				'zoomtolayer' => $pname . '_openlayers_1', 
 				'point_zoom_level' => '5',
 			),
@@ -76,25 +71,34 @@ function opendata_build_preset($pname) {
 		'default_layer' => 'dped_browser_world_light_usa',
 		'layers' => array(
 			'dped_browser_world_light_usa' => 'dped_browser_world_light_usa',
-			'congressional_districts' => 'congressional_districts',
-			'rtl_listing_openlayers_1' => 'rtl_listing_openlayers_1',
+			//'congressional_districts' => 'congressional_districts',
+			$pname . '_openlayers_1' => $pname . '_openlayers_1',
 		),
 		'layer_styles' => array(
-			//'rtl_listing_openlayers_1' => 'dped_blue',
 			$pname . '_openlayers_1' => 'dped_blue',
+			),
 		),
+		/*
+		'layer_styles' => array(
+			$pname . '_openlayers_1' => array(
+				'default' => 'dped_blue',
+				'select' => 'dped_blue',
+				'temporary' => 'dped_blue',
+			),
+		),
+		*/
 		'layer_activated' => array(
 			$pname . '_openlayers_1' => $pname . '_openlayers_1',
-			//'rtl_listing_openlayers_1' => 'rtl_listing_openlayers_1',
 		),
 		'layer_switcher' => array(),
 		'projection' => '900913', 
 		'displayProjection' => '4326', 
 		'styles' => array(
-			'default' => 'circle-7',
-			'select' => 'circle-7',
-			'temporary' => 'circle-7',
+			'default' => 'dped_blue',
+			'select' => 'dped_blue',
+			'temporary' => 'dped_blue',
 		),
+		//'preset_name' => $pname,
 		'options' => NULL,
 	);
 

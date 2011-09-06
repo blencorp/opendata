@@ -1,4 +1,5 @@
 <?php
+
 /** 
  * Creates a view display
  * 
@@ -32,11 +33,17 @@ function opendata_create_display(&$view, $type, &$form_state) {
 	$colnames = array();
 	$colnames = _opendata_get_fields($data_table_id);
 
+	// save relevant field names for the map data
+	$other_lat = $colnames[$map_lat];
+	$other_lon = $colnames[$map_long];
+	$name_field = $colnames[$map_title];
+	$description_field = $colnames[$map_sub_title];
+
 	// get the name of the selected table key field
 	$table_key = $colnames[$table_key];
 
 	// set the detail perm url based on the selected table key field
-	$detail_url = $url . '/detail/[' . $table_key . ']?' . $table_key . '=[' . $table_key . ']';
+	$detail_url = $url . 'detail/[' . $table_key . ']?' . $table_key . '=[' . $table_key . ']';
 
 	
 	//Get array of the summary fields
@@ -54,6 +61,30 @@ function opendata_create_display(&$view, $type, &$form_state) {
 	if ($type == 'default') {
 		$handler = $view->new_display('default', $full_title . ' default', 'default');
 		$handler->override_option('fields', $selected_fields);
+		$handler->override_option('access', array(
+			'type' => 'perm',
+			'perm' => 'table wizard administration',
+		));
+	
+		$handler->override_option('cache', array(
+			'type' => 'none',
+		));
+	
+		$handler->override_option('header_format', '1');
+		$handler->override_option('header_empty', 0);
+		$handler->override_option('empty', 'There are no rows in this table.');
+		$handler->override_option('empty_format', '1');
+		$handler->override_option('items_per_page', $page_limit);
+		$handler->override_option('use_pager', '1');
+		$handler->override_option('style_plugin', 'table');
+	
+		// build the style options
+		//TODO: work with _opendata_build_style_options
+		$style_options = array();
+		$style_options = _opendata_build_style_options($colnames, $summary);
+		$handler->override_option('style_options', $style_options);
+		$handler->override_option('row_plugin', '');
+		$handler->override_option('displays', array());
 	} elseif ($type == 'desc_block') {
 		$handler = $view->new_display('block', $title . ' description block', 'block_1');
 		$handler->override_option('fields', array(
@@ -97,20 +128,39 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$handler->override_option('block_description', '');
 		$handler->override_option('block_caching', -1);
 	} elseif ($type == 'summary_page') {
+		$url = 'grants/' . $office . '/' . $fiscal_year . '/' . $title;
 		$handler = $view->new_display('page', $full_title . ' summary table listing', 'page_1');
 		$handler->override_option('title', $full_title);
 		$handler->override_option('path', $url);
 	} elseif ($type == 'openlayers_data') {
 		$handler = $view->new_display('openlayers', $full_title . ' map data', 'openlayers_1');
+		//module_load_include('inc', 'opendata', 'opendata.helper');
+		//$map_title = $form_state['storage']['summary_values']['summary_map']['map_title'];
+		$map_fields = array();
+		$map_fields = _opendata_build_map_fields($data_table_name, $other_lat, $other_lon, $name_field, $description_field);
+    $handler->override_option('fields', $map_fields);
+		$handler->override_option('items_per_page', 0);
 		$handler->override_option('style_plugin', 'openlayers_data');
 		$handler->override_option('style_options', array(
 			'grouping' => '',
 			'data_source' => array(
-				'value' => array(
-				'other_latlon' => 'other_latlon',
-				),
+				'value' => array('other_latlon' => 'other_latlon',),
+
+				'other_lat' => $other_lat,
+				'other_lon' => $other_lon, 
+				'openlayers_wkt' => $table_key,
+				'other_top' => $table_key,
+				'other_right' => $table_key,
+				'other_bottom' => $table_key,
+				'other_left' => $table_key,
+				'name_field' => $name_field,
+				'description_field' => $description_field,
+
+				/*
+				'other_lat' => 'Latitude',
+				'other_lon' => 'Longitude',
 				'other_lat' => $map_lat,
-				'other_lon' => $map_long,
+				'other_lon' => $map_long, 
 				'openlayers_wkt' => $title,
 				'other_top' => $title,
 				'other_right' => $title,
@@ -118,6 +168,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 				'other_left' => $title,
 				'name_field' => $map_title,
 				'description_field' => $map_sub_title,
+				*/
 			),
 		));
 	} elseif ($type == 'map_block') {
@@ -182,34 +233,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
     $handler->override_option('style_plugin', 'default');
     $handler->override_option('style_options', NULL);
     $handler->override_option('row_plugin', 'fields');
-	} elseif ($type == 'block') {
-	}
-
-	$handler->override_option('access', array(
-		'type' => 'perm',
-		'perm' => 'table wizard administration',
-	));
-
-	$handler->override_option('cache', array(
-		'type' => 'none',
-	));
-
-	$handler->override_option('header_format', '1');
-	$handler->override_option('header_empty', 0);
-	$handler->override_option('empty', 'There are no rows in this table.');
-	$handler->override_option('empty_format', '1');
-	$handler->override_option('items_per_page', $page_limit);
-	$handler->override_option('use_pager', '1');
-	$handler->override_option('style_plugin', 'table');
-
-	// build the style options
-	//TODO: work with _opendata_build_style_options
-	$style_options = array();
-	$style_options = _opendata_build_style_options($colnames, $summary);
-	$handler->override_option('style_options', $style_options);
-	$handler->override_option('row_plugin', '');
-	$handler->override_option('displays', array());
-
+	} 
 	return $form;
 }
 

@@ -315,18 +315,22 @@ function opendata_published(&$form_state) {
  * Implementation of hook_form_submit()
  */
 function opendata_general_submit($form, &$form_state) {
+	// if user clicks on "Next" to go to summary page
 	if ($form_state['clicked_button']['#id'] == 'edit-next-summary') {
 		$form_state['storage']['summary'] = TRUE;    
 		$form_state['storage']['general_values'] = $form_state['values'];
 	}
+	// if button clicked is to go to detail page
 	else if ($form_state['clicked_button']['#id'] == 'edit-next-detail') {
 		$form_state['storage']['detail'] = TRUE;    
 		$form_state['storage']['summary_values'] = $form_state['values'];
 	}
+	// if button clicked is to go to publish page
 	else if ($form_state['clicked_button']['#id'] == 'edit-publish') {
 		$form_state['storage']['published'] = TRUE;    
 		$form_state['storage']['published_values'] = $form_state['values'];
 	}
+	// if none of the above....??
 	else {
 		$general_values = $form_state['storage']['general_values'];
 	}
@@ -358,9 +362,9 @@ function opendata_general_submit($form, &$form_state) {
 function opendata_general_views(&$form_state) {
     
 	#debug
-	#dpm($form_state);
+	dpm($form_state);
 	
-	//Basic data points collected from the user
+	// basic data points collected from the user
 	$data_table_id = $form_state['storage']['general_values']['details']['data_table'];
 	$data_table_name = _opendata_get_tablename($data_table_id);
 	$office = _opendata_formatter($form_state['storage']['general_values']['details']['office'], 'lower');
@@ -402,31 +406,7 @@ function opendata_general_views(&$form_state) {
 	$view->base_table = $data_table_name;
 	$view->is_cacheable = FALSE;
 	$view->api_version = 2;
-	$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-
-	/*
-	// get the list of column names
-	$colnames = array();
-	$colnames = _opendata_get_fields($data_table_id);
-
-	// get the name of the selected table key field
-	$table_key = $colnames[$table_key];
-
-	// set the detail perm url based on the selected table key field
-	$detail_url = $url . '/detail/[' . $table_key . ']?' . $table_key . '=[' . $table_key . ']';
-
-	//Get array of the summary fields
-	$summary_fields = array();
-	$summary_fields = $form_state['storage']['summary_values']['summary_fields'];
-   
-	// get an array of the detail page fields
-	$detail_fields = array();
-	$detail_fields = $form_state['storage']['published_values']['detail_fields'];
-    
-	// get selected fields
-	$selected_fields = array();
-	$selected_fields = _opendata_build_view_summary_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key);
-	*/
+	$view->disabled = FALSE; 
 
 	// load the view display creator function 
 	module_load_include('inc', 'opendata', 'opendata.display');
@@ -484,7 +464,7 @@ function opendata_general_views(&$form_state) {
 	opendata_create_display(&$view, $type, &$form_state);
 
 	#debug
-	dpm($view);
+	//dpm($view);
 	
 	//Build context
 	$cname = $unique_name;
@@ -525,10 +505,57 @@ function opendata_general_views(&$form_state) {
 	// Remove this view from cache so we can edit it properly.
 	views_object_cache_clear('view', $view->name);
 
-	dbm($form_state);
-	
+	global $base_url;
+	$link = $base_url . '/' . $url;
 	drupal_set_message(t('Dataset Published Successfully!'));
-	drupal_set_message(t('Showtime @ http://open.blencorp.com/camel/' . $url));
+	drupal_set_message(t('Showtime @ !url', array('!url' => l($link, $link))));
+}
+
+function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subtitle) {
+	// instantiate an array to hold the final fields structure 
+	$map_fields = array();
+
+	$map_fields[$lat] = array(
+		'id' => $lat,
+		'table' => $data_table_name,
+		'field' => $lat,
+		'label' => _opendata_formatter($lat, 'space'),
+		'relationship' => 'none',
+		'separator' => '',
+		'exclude' => 1,
+	);
+
+	$map_fields[$lon] = array(
+		'id' => $lon,
+		'table' => $data_table_name,
+		'field' => $lon,
+		'label' => _opendata_formatter($lon, 'space'),
+		'relationship' => 'none',
+		'separator' => '',
+		'exclude' => 1,
+	);
+
+	$map_fields[$title] = array(
+		'id' => $title,
+		'table' => $data_table_name,
+		'field' => $title,
+		'label' => _opendata_formatter($title, 'space'),
+		'relationship' => 'none',
+		'separator' => '',
+		'exclude' => 1,
+	);
+
+	$map_fields[$subtitle] = array(
+		'id' => $subtitle,
+		'table' => $data_table_name,
+		'field' => $subtitle,
+		'label' => _opendata_formatter($subtitle, 'space'),
+		'exclude' => 0,
+		'relationship' => 'none',
+		'separator' => '',
+	);
+				
+	return $map_fields;
 }
 
 function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fields, $url, $table_key) {
@@ -547,7 +574,6 @@ function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fie
         'table' => $data_table_name,
         'field' => $table_key,
         'label' => _opendata_formatter($table_key, 'space'),
-        'exclude' => 0,
         'relationship' => 'none',
         'separator' => '',
         'exclude' => 1,
@@ -741,63 +767,6 @@ function _opendata_build_style_options($colnames, $fields) {
     #dpm($style_options);
     
     return $style_options;
-    
-    /* View Template: Reference Only */
-    /*
-          'grouping' => '',
-      'override' => 1,
-      'sticky' => 1,
-      'order' => 'asc',
-      'columns' => array(
-        'ID' => 'ID',
-        'awardNo' => 'awardNo',
-        'projectTitle' => 'projectTitle',
-        'projectDirector' => 'projectDirector',
-        'amount' => 'amount',
-        'teacherNo' => 'teacherNo',
-        'districtNo' => 'districtNo',
-        'grades' => 'grades',
-      ),
-      
-      'info' => array(
-        'ID' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'awardNo' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'projectTitle' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'projectDirector' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'amount' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'teacherNo' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'districtNo' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-        'grades' => array(
-          'sortable' => 1,
-          'separator' => '',
-        ),
-      ),
-      'default' => -1,
-    ));
-
-    */
-
 }
 
 
@@ -1116,4 +1085,3 @@ function _opendata_formatter($val, $type) {
     
     return $val;
 }
-
