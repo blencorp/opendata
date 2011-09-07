@@ -2,7 +2,6 @@
 /**
  * @file
  * OpenData Module Helper Functions
- * This file is not currently being included by any procedures.
  */
 
 function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subtitle) {
