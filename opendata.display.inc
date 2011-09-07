@@ -4,34 +4,34 @@
  * Creates a view display
  * 
  * @param $form_state 
- *		An array holding the form data 
+ *    An array holding the form data 
  * 
  * @return 
- *		A $form array with user provided values.
+ *    A $form array with user provided values.
  *
  */
 function opendata_create_display(&$view, $type, &$form_state) {
-	
-	$data_table_id = $form_state['storage']['general_values']['details']['data_table'];
-	$data_table_name = _opendata_get_tablename($data_table_id);
-	$office = _opendata_formatter($form_state['storage']['general_values']['details']['office'], 'lower');
-	$fiscal_year = $form_state['storage']['general_values']['details']['fiscal_year'];
-	$full_title =  $form_state['storage']['general_values']['details']['title'];
-	$title =  _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'hyphen');
-	$description = _opendata_formatter($form_state['storage']['general_values']['details']['description'], 'html');
+  
+  $data_table_id = $form_state['storage']['general_values']['details']['data_table'];
+  $data_table_name = _opendata_get_tablename($data_table_id);
+  $office = _opendata_formatter($form_state['storage']['general_values']['details']['office'], 'lower');
+  $fiscal_year = $form_state['storage']['general_values']['details']['fiscal_year'];
+  $full_title =  $form_state['storage']['general_values']['details']['title'];
+  $title =  _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'hyphen');
+  $description = _opendata_formatter($form_state['storage']['general_values']['details']['description'], 'html');
 
-	$unique_name = substr('od_' . $office . '_' . $fiscal_year . '_' . _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'underscore'), 0, 30);
+  $unique_name = substr('od_' . $office . '_' . $fiscal_year . '_' . _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'underscore'), 0, 30);
 
-	$page_limit = $form_state['storage']['summary_values']['page_limit'];
-	$table_key = $form_state['storage']['summary_values']['table_key'];
-	$map_title = $form_state['storage']['summary_values']['summary_map']['map_title'];
-	$map_sub_title = $form_state['storage']['summary_values']['summary_map']['map_sub_title'];
-	$map_lat = $form_state['storage']['summary_values']['summary_map']['map_lat'];
-	$map_long = $form_state['storage']['summary_values']['summary_map']['map_long'];
+  $page_limit = $form_state['storage']['summary_values']['page_limit'];
+  $table_key = $form_state['storage']['summary_values']['table_key'];
+  $map_title = $form_state['storage']['summary_values']['summary_map']['map_title'];
+  $map_sub_title = $form_state['storage']['summary_values']['summary_map']['map_sub_title'];
+  $map_lat = $form_state['storage']['summary_values']['summary_map']['map_lat'];
+  $map_long = $form_state['storage']['summary_values']['summary_map']['map_long'];
 
-	// get the list of column names
-	$colnames = array();
-	$colnames = _opendata_get_fields($data_table_id);
+  // get the list of column names
+  $colnames = array();
+  $colnames = _opendata_get_fields($data_table_id);
 
 	// save relevant field names for the map data
 	$other_lat = $colnames[$map_lat];
@@ -44,19 +44,18 @@ function opendata_create_display(&$view, $type, &$form_state) {
 
 	// set the detail perm url based on the selected table key field
 	$detail_url = $url . 'detail/[' . $table_key . ']?' . $table_key . '=[' . $table_key . ']';
+  
+  //Get array of the summary fields
+  $summary_fields = array();
+  $summary_fields = $form_state['storage']['summary_values']['summary_fields'];
 
-	
-	//Get array of the summary fields
-	$summary_fields = array();
-	$summary_fields = $form_state['storage']['summary_values']['summary_fields'];
+  // get an array of the detail page fields
+  $detail_fields = array();
+  $detail_fields = $form_state['storage']['published_values']['detail_fields'];
 
-	// get an array of the detail page fields
-	$detail_fields = array();
-	$detail_fields = $form_state['storage']['published_values']['detail_fields'];
-
-	// get selected fields
-	$selected_fields = array();
-	$selected_fields = _opendata_build_view_summary_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key);
+  // get selected fields
+  $selected_fields = array();
+  $selected_fields = _opendata_build_view_summary_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key);
 
 	if ($type == 'default') {
 		$handler = $view->new_display('default', $full_title . ' default', 'default');
@@ -207,7 +206,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
       'default' => 0,
       'block_1' => 0,
     ));
-	} elseif ($type == 'detail_page') {
+  } elseif ($type == 'detail_page') {
     $handler = $view->new_display('page', $full_title . ' detail', 'page_2');
     
     // build detail page fields

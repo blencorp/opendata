@@ -76,7 +76,6 @@ function opendata_build_preset($pname) {
 		),
 		'layer_styles' => array(
 			$pname . '_openlayers_1' => 'dped_blue',
-			),
 		),
 		/*
 		'layer_styles' => array(
