@@ -229,6 +229,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
         'exclude' => 1,
       ),
     ));
+    $handler->override_option('filters', array());
     $handler->override_option('title', $full_title);
     $handler->override_option('path', $url . '/detail/%');
     $handler->override_option('style_plugin', 'default');
