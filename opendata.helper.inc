@@ -4,9 +4,19 @@
  * OpenData Module Helper Functions
  */
 
-function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subtitle) {
+function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subtitle, $id_field, $detail_url) {
 	// instantiate an array to hold the final fields structure 
 	$map_fields = array();
+
+	$map_fields[$id_field] = array(
+		'id' => $id_field,
+		'table' => $data_table_name,
+		'field' => $id_field,
+		'label' => _opendata_formatter($id_field, 'space'),
+		'relationship' => 'none',
+		'separator' => '',
+		'exclude' => 1,
+	);
 
 	$map_fields[$lat] = array(
 		'id' => $lat,
@@ -32,10 +42,34 @@ function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subti
 		'id' => $title,
 		'table' => $data_table_name,
 		'field' => $title,
-		'label' => _opendata_formatter($title, 'space'),
 		'relationship' => 'none',
 		'separator' => '',
 		'exclude' => 1,
+		'label' => _opendata_formatter($title, 'space'),
+    'alter' => array(
+      'alter_text' => 0,
+      'text' => '',
+      'make_link' => 1,
+      'path' => $detail_url, 
+      'link_class' => '',
+      'alt' => '',
+      'prefix' => '',
+      'suffix' => '',
+      'target' => '',
+      'help' => '',
+      'trim' => 0,
+      'max_length' => '',
+      'word_boundary' => 1,
+      'ellipsis' => 1,
+      'html' => 0,
+      'strip_tags' => 0,
+    ),
+    'empty' => '',
+    'hide_empty' => 0,
+    'empty_zero' => 0,
+    'override' => array(
+      'button' => 'Use default',
+    ),
 	);
 
 	$map_fields[$subtitle] = array(
@@ -234,6 +268,7 @@ function _opendata_build_style_options($colnames, $fields) {
     foreach ($colnames as $colname) {    
         //Add the field_ prefix to the column name
         $selected_colname = 'field_selected_' . $colname;
+        $sortable_colname = 'field_sortable_' . $colname;
         
         //If the field is selected, build the view field
         if ($fields[$selected_colname] == 1) {
@@ -242,7 +277,11 @@ function _opendata_build_style_options($colnames, $fields) {
             $style_options_columns[$colname] = $colname;
                         
             //Add it to the info
-            $style_options_info[$colname] = array ('sortable' => 1, 'separator' => '',);
+						if ($fields[$sortable_colname] == 1) {
+							$style_options_info[$colname] = array ('sortable' => 1, 'separator' => '',);
+						} else {
+							$style_options_info[$colname] = array();
+						}
         }
     }
     
@@ -558,23 +597,26 @@ function _opendata_get_tablename($tableid) {
  *   A formatted text string
  */
 function _opendata_formatter($val, $type) {
-    switch ($type) {
-        case 'lower':
-            $val = strtolower($val);
-            break;
-        case 'hyphen':
-            $val = str_replace(" ", "-", strtolower($val));
-            break;
-        case 'html':
-            nl2br($val);
-            break;
-        case 'underscore':
-            $val = str_replace(" ", "_", strtolower($val));
-            break;
-        case 'space':
-            $val = str_replace("_", " ", ucwords($val));
-            break;
-    }
-    
-    return $val;
+	switch ($type) {
+		case 'lower':
+			$val = strtolower($val);
+			break;
+		case 'hyphen':
+			$val = str_replace(" ", "-", strtolower($val));
+			break;
+		case 'html':
+			nl2br($val);
+			break;
+		case 'underscore':
+			$val = str_replace(" ", "_", strtolower($val));
+			break;
+		case 'space':
+			$val = str_replace("_", " ", ucwords($val));
+			// split CamelCase
+			$val = preg_split('/([[:upper:]][[:lower:]]+)/', $val, null, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
+			$val = implode(" ", $val);
+			break;
+	}
+
+	return $val;
 }

@@ -450,7 +450,7 @@ function opendata_general_views(&$form_state) {
       $type = 'map_block';
       opendata_create_display(&$view, $type, &$form_state);
     } else {
-      drupal_set_message(t('An OpenLayer preset fails to be created. Please contact your Administrator.'), 'error');   
+      drupal_set_message(t('Error: Could not create OpenLayer preset. Please contact your Administrator.'), 'error');   
     }
   }
     
@@ -508,9 +508,19 @@ function opendata_general_views(&$form_state) {
   // Remove this view from cache so we can edit it properly.
   views_object_cache_clear('view', $view->name);
 
+	// refresh openlayers so the map layer loads
+	openlayers_layers_load();
+
 	global $base_url;
 	$link = $base_url . '/' . $url;
 	drupal_set_message(t('Dataset Published Successfully!'));
 	drupal_set_message(t('Showtime @ !url', array('!url' => l($link, $link))));
-}
 
+	/*
+	$ld = openlayers_preset_load($unique_name);
+	drupal_set_message(t('Preset name: !pname', array('!pname' => $ld->name)));
+	if ($ld && $ld->type != t('Default')) {
+		drupal_set_message(t('The were was a problem loading the OL preset !ol.', array('!ol' => $unique_name)));
+	}
+	*/
+}

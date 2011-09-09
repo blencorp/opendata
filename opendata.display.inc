@@ -22,6 +22,8 @@ function opendata_create_display(&$view, $type, &$form_state) {
 
   $unique_name = substr('od_' . $office . '_' . $fiscal_year . '_' . _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'underscore'), 0, 30);
 
+	$url = 'grants/' . $office . '/' . $fiscal_year . '/' . $title;
+
   $page_limit = $form_state['storage']['summary_values']['page_limit'];
   $table_key = $form_state['storage']['summary_values']['table_key'];
   $map_title = $form_state['storage']['summary_values']['summary_map']['map_title'];
@@ -43,7 +45,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 	$table_key = $colnames[$table_key];
 
 	// set the detail perm url based on the selected table key field
-	$detail_url = $url . 'detail/[' . $table_key . ']?' . $table_key . '=[' . $table_key . ']';
+	$detail_url = $url . '/detail/[' . $table_key . ']?' . $table_key . '=[' . $table_key . ']';
   
   //Get array of the summary fields
   $summary_fields = array();
@@ -80,7 +82,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		// build the style options
 		//TODO: work with _opendata_build_style_options
 		$style_options = array();
-		$style_options = _opendata_build_style_options($colnames, $summary);
+		$style_options = _opendata_build_style_options($colnames, $summary_fields);
 		$handler->override_option('style_options', $style_options);
 		$handler->override_option('row_plugin', '');
 		$handler->override_option('displays', array());
@@ -133,10 +135,15 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$handler->override_option('path', $url);
 	} elseif ($type == 'openlayers_data') {
 		$handler = $view->new_display('openlayers', $full_title . ' map data', 'openlayers_1');
-		//module_load_include('inc', 'opendata', 'opendata.helper');
-		//$map_title = $form_state['storage']['summary_values']['summary_map']['map_title'];
 		$map_fields = array();
-		$map_fields = _opendata_build_map_fields($data_table_name, $other_lat, $other_lon, $name_field, $description_field);
+		$a1 = $data_table_name; 
+		$a2 = $other_lat;
+		$a3 = $other_lon; 
+		$a4 = $name_field; 
+		$a5 = $description_field;
+		$a6 = $table_key;
+		$a7 = $detail_url;
+		$map_fields = _opendata_build_map_fields($a1, $a2, $a3, $a4, $a5, $a6, $a7);
     $handler->override_option('fields', $map_fields);
 		$handler->override_option('items_per_page', 0);
 		$handler->override_option('style_plugin', 'openlayers_data');
@@ -144,7 +151,6 @@ function opendata_create_display(&$view, $type, &$form_state) {
 			'grouping' => '',
 			'data_source' => array(
 				'value' => array('other_latlon' => 'other_latlon',),
-
 				'other_lat' => $other_lat,
 				'other_lon' => $other_lon, 
 				'openlayers_wkt' => $table_key,
@@ -154,20 +160,6 @@ function opendata_create_display(&$view, $type, &$form_state) {
 				'other_left' => $table_key,
 				'name_field' => $name_field,
 				'description_field' => $description_field,
-
-				/*
-				'other_lat' => 'Latitude',
-				'other_lon' => 'Longitude',
-				'other_lat' => $map_lat,
-				'other_lon' => $map_long, 
-				'openlayers_wkt' => $title,
-				'other_top' => $title,
-				'other_right' => $title,
-				'other_bottom' => $title,
-				'other_left' => $title,
-				'name_field' => $map_title,
-				'description_field' => $map_sub_title,
-				*/
 			),
 		));
 	} elseif ($type == 'map_block') {
@@ -211,9 +203,12 @@ function opendata_create_display(&$view, $type, &$form_state) {
     
     // build detail page fields
     $selected_fields = array();
-    $selected_fields = _opendata_build_detail_view_fields($data_table_name, $colnames, $detail_fields, $table_key);
+    $a1 = $data_table_name;
+		$a2 = $colnames;
+		$a3 = $detail_fields;
+		$a4 = $table_key;
+    $selected_fields = _opendata_build_detail_view_fields($a1, $a2, $a3, $a4);
     $handler->override_option('fields', $selected_fields);
-    
     $handler->override_option('arguments', array(
       $table_key => array(
         'id' => $table_key,
@@ -226,7 +221,6 @@ function opendata_create_display(&$view, $type, &$form_state) {
         'exclude' => 1,
       ),
     ));
-    
     $handler->override_option('title', $full_title);
     $handler->override_option('path', $url . '/detail/%');
     $handler->override_option('style_plugin', 'default');
@@ -235,4 +229,3 @@ function opendata_create_display(&$view, $type, &$form_state) {
 	} 
 	return $form;
 }
-
