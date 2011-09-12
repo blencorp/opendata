@@ -44,21 +44,28 @@ function opendata_create_display(&$view, $type, &$form_state) {
 	// get the name of the selected table key field
 	$table_key = $colnames[$table_key];
 
+  // get an array of the detail page fields
+  $detail_fields = array();
+  $detail_fields = $form_state['storage']['published_values']['detail_fields'];
+	$detail_title_raw = _opendata_get_title_field($colnames, $detail_fields);
+	$detail_title = _opendata_formatter($detail_title_raw, 'space');
+
 	// set the detail perm url based on the selected table key field
-	$detail_url = $url . '/detail/[' . $table_key . ']?' . $table_key . '=[' . $table_key . ']';
+	//$detail_url = $url . '/detail/[' . $table_key . ']?' . $table_key . '=[' . $table_key . ']';
+	$detail_url = $url . '/detail/[' . $table_key . ']/[' . $detail_title_raw . ']';
   
   //Get array of the summary fields
   $summary_fields = array();
   $summary_fields = $form_state['storage']['summary_values']['summary_fields'];
 
-  // get an array of the detail page fields
-  $detail_fields = array();
-  $detail_fields = $form_state['storage']['published_values']['detail_fields'];
-
   // get selected fields
+	// new modifiction, add the detail_title field as the first or second field (after id field) 
   $selected_fields = array();
-  $selected_fields = _opendata_build_view_summary_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key);
+  $selected_fields = _opendata_build_view_summary_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key, $detail_title_raw);
 
+	//===========================================================================
+	// begin display construction
+	//===========================================================================
 	if ($type == 'default') {
 		$handler = $view->new_display('default', $full_title . ' default', 'default');
 		$handler->override_option('fields', $selected_fields);
@@ -162,6 +169,45 @@ function opendata_create_display(&$view, $type, &$form_state) {
 				'description_field' => $description_field,
 			),
 		));
+	} elseif ($type == 'detail_openlayers_data') {
+		$handler = $view->new_display('openlayers', $full_title . ' detail map data', 'openlayers_1');
+		$map_fields = array();
+		$a1 = $data_table_name; 
+		$a2 = $other_lat;
+		$a3 = $other_lon; 
+		$a4 = $name_field; 
+		$a5 = $description_field;
+		$a6 = $table_key;
+		$a7 = $detail_url;
+		$map_fields = _opendata_build_map_fields($a1, $a2, $a3, $a4, $a5, $a6, $a7);
+    $handler->override_option('fields', $map_fields);
+		$handler->override_option('items_per_page', 0);
+		$handler->override_option('style_plugin', 'openlayers_data');
+		$handler->override_option('style_options', array(
+			'grouping' => '',
+			'data_source' => array(
+				'value' => array('other_latlon' => 'other_latlon',),
+				'other_lat' => $other_lat,
+				'other_lon' => $other_lon, 
+				'openlayers_wkt' => $table_key,
+				'other_top' => $table_key,
+				'other_right' => $table_key,
+				'other_bottom' => $table_key,
+				'other_left' => $table_key,
+				'name_field' => $name_field,
+				'description_field' => $description_field,
+			),
+		));
+	} elseif ($type == 'map_block_detail') {
+		$handler = $view->new_display('block', $full_title.' detail map block', 'block_3');
+		$handler->override_option('items_per_page', 0);
+		$handler->override_option('use_pager', '0');
+		$handler->override_option('style_plugin', 'openlayers_map');
+		$handler->override_option('style_options', array(
+		 'preset' => $unique_name . '_detail',
+		));
+		$handler->override_option('block_description', '');
+		$handler->override_option('block_caching', -1);
 	} elseif ($type == 'map_block') {
 		$handler = $view->new_display('block', $full_title . ' map block', 'block_2');
 		$handler->override_option('items_per_page', 0);
@@ -208,24 +254,59 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$a3 = $detail_fields;
 		$a4 = $table_key;
     $selected_fields = _opendata_build_detail_view_fields($a1, $a2, $a3, $a4);
+
     $handler->override_option('fields', $selected_fields);
+
     $handler->override_option('arguments', array(
       $table_key => array(
+				'title' => '%2',
         'id' => $table_key,
         'table' => $data_table_name,
         'field' => $table_key,
-        'label' => _opendata_formatter($table_key, 'space'),
-        'exclude' => 0,
         'relationship' => 'none',
-        'separator' => '',
-        'exclude' => 1,
+        //'label' => _opendata_formatter($table_key, 'space'),
+      ),
+      $detail_title_raw => array(
+				/*
+				'default_action' => 'empty',
+				'style_plugin' => 'default_summary',
+				'style_options' => array(),
+				'wildcard' => 'all',
+				'wildcard_substitution' => 'All',
+				*/
+				'title' => '%2',
+				/*
+				'breadcrumb' => '',
+				'default_argument_type' => 'fixed',
+				'default_argument' => '',
+				'validate_type' => 'none',
+				'validate_fail' => 'not found',
+				'glossary' => 0,
+				*/
+				'limit' => '0',
+				'case' => 'none',
+				'path_case' => 'none',
+				'transform_dash' => 0,
+        'id' => $detail_title_raw,
+        'table' => $data_table_name,
+        'field' => $detail_title_raw,
+        //'label' => _opendata_formatter($detail_title_raw, 'space'),
+        //'relationship' => 'none',
       ),
     ));
-    $handler->override_option('title', $full_title);
-    $handler->override_option('path', $url . '/detail/%');
+		/*
+		if ($detail_title != '') {
+			$handler->override_option('title', $detail_title);
+		} else {
+			$handler->override_option('title', $full_title);
+		}
+		*/
+		//$handler->override_option('title', $detail_title_raw);
+		$handler->override_option('title', $full_title);
     $handler->override_option('style_plugin', 'default');
     $handler->override_option('style_options', NULL);
     $handler->override_option('row_plugin', 'fields');
+    $handler->override_option('path', $url . '/detail/%');
 	} 
 	return $form;
 }

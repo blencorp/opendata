@@ -4,6 +4,22 @@
  * OpenData Module Helper Functions
  */
 
+function _opendata_get_title_field($colnames, $fields) {
+	$tfield = 'None';
+
+	foreach ($colnames as $colname) {    
+		$title_colname = 'field_detail_title_' . $colname;
+
+		if ($fields[$title_colname] == '1') {
+			$tfield = $colname;
+		}
+	}
+
+	//dbm($colnames);
+
+	return $tfield;
+}
+
 function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subtitle, $id_field, $detail_url) {
 	// instantiate an array to hold the final fields structure 
 	$map_fields = array();
@@ -85,7 +101,7 @@ function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subti
 	return $map_fields;
 }
 
-function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fields, $url, $table_key) {
+function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fields, $url, $table_key, $detail_title) {
     
     #debug
     #dpm($s_fields);
@@ -106,6 +122,17 @@ function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fie
         'exclude' => 1,
     );
     $s_selected_fields[$table_key]['display_order'] = 0;
+
+		// set the detail page link title as the second field
+    $s_selected_fields[$detail_title] = array(
+        'label' => _opendata_formatter($detail_title, 'space'),
+        'exclude' => 1,
+        'id' => $detail_title,
+        'table' => $data_table_name,
+        'field' => $detail_title,
+        'relationship' => 'none',
+    );
+    $s_selected_fields[$detail_title]['display_order'] = 1;
     
 
     // find out the table key column name
@@ -230,33 +257,30 @@ function _opendata_build_detail_view_fields($data_table_name, $colnames, $d_fiel
 
 function _opendata_sort_display_order($selected_fields, $isSummary = 0) {
 
-    foreach ($selected_fields as $key => $row) {
-        $selected_field[$key] = $row['display_order'];
-    }
-    
-    array_multisort($selected_field, SORT_ASC, $selected_fields);
-    
+	foreach ($selected_fields as $key => $row) {
+		$selected_field[$key] = $row['display_order'];
+	}
+
+	array_multisort($selected_field, SORT_ASC, $selected_fields);
+
 	// remove path for only summary fields
 	if ($isSummary) {
 		// hold index of the array
 		$i = 0;
-		
+	
 		foreach ($selected_fields as $key => $value) {        
-			
-			if ($i > 1) {
+			if ($i > 2) {
 				// delete the 'path' array item				
 				//unset($selected_field['alter']['path']);
 				unset($selected_fields[$key]['alter']['path']);
 			}
-			
-
 			// increment the current index
 			$i++;
 		}
 	}
-    #dpm($selected_fields);
-    
-    return $selected_fields;
+	#dpm($selected_fields);
+
+	return $selected_fields;
 }
 
 function _opendata_build_style_options($colnames, $fields) {
@@ -300,7 +324,6 @@ function _opendata_build_style_options($colnames, $fields) {
     
     return $style_options;
 }
-
 
 /**
  * A helper function to build the fields of the columns
@@ -404,85 +427,83 @@ function _opendata_build_summary_listing($tableid) {
  *   A form array
  */
 function _opendata_build_detail_listing($tableid) {
-    
-    //Debug
-    //dpm($tableid);
-    
-    $form['detail_fields'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Fields to Include on Detail Page'),
-        '#tree' => TRUE,
-				'#prefix' => '<div class="opendata-detail-fields">',
-				'#suffix' => '</div>',
-    );
-    
-    //Build the columns
-    $colnames = array();
-    $colnames = _opendata_get_fields($tableid);
-    
-    $form['detail_fields']['lbl_display_fields'] = array(
-	    '#type' => 'item',
-	    '#title' => t('Detail Listing Fields'),
+
+	//Debug
+	//dpm($tableid);
+
+	$form['detail_fields'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Fields to Include on Detail Page'),
+		'#tree' => TRUE,
+		'#prefix' => '<div class="opendata-detail-fields">',
+		'#suffix' => '</div>',
+	);
+
+	//Build the columns
+	$colnames = array();
+	$colnames = _opendata_get_fields($tableid);
+
+	$form['detail_fields']['lbl_display_fields'] = array(
+		'#type' => 'item',
+		'#title' => t('Detail Listing Fields'),
 	);
 	$form['detail_fields']['lbl_display_order'] = array(
-	    '#type' => 'item',
-	    '#title' => t('Display Field'),
+		'#type' => 'item',
+		'#title' => t('Display Field'),
 	);
 	$form['detail_fields']['lbl_title'] = array(
-	    '#type' => 'item',
-	    '#title' => t('Title'),
+		'#type' => 'item',
+		'#title' => t('Title'),
 	);
 	$form['detail_fields']['lbl_line_break'] = array(
-	    '#type' => 'item',
-	    '#title' => t('Line Break'),
+		'#type' => 'item',
+		'#title' => t('Line Break'),
 	);
 	$form['detail_fields']['lbl_badge'] = array(
-	    '#type' => 'item',
-	    '#title' => t('Badge'),
+		'#type' => 'item',
+		'#title' => t('Badge'),
 	);
+
+	// Build the fields
+	$fields = array();
+
+	foreach ($colnames as $colname) {
+		$fields[$colname] = array(
+			'id' => $colname,
+			'table' => $rawtablename,
+			'field' => $colname,
+			'label' => $colname,
+			'exclude' => 0,
+			'relationship' => 'none',
+		);
+
+		//Generate the table fields checkboxes
+		$selected = 'field_selected_' . $colname;
+		$form['detail_fields'][$selected] = array('#type' => 'checkbox', '#title' => t($colname));
+	
+		//Generate Sort order fields
+		$display_order = 'field_display_order_' . $colname;
+		$form['detail_fields'][$display_order] = array('#type' => 'textfield', '#size' => 10);
+	
+		// generate title option
+		$detail_title = 'field_detail_title_' . $colname;
+		$form['detail_fields'][$detail_title] = array(
+			'#type' => 'radios',
+			//'#options' => array('0' => ''),
+			'#options' => array('1' => ''),
+		);
+
+		// generate the line break
+		$line_break = 'field_line_break_' . $colname;
+		$form['detail_fields'][$line_break] = array('#type' => 'checkbox');
+      
+		// generate the badge field
+		$badge = 'field_badge_' . $colname;
+		$form['detail_fields'][$badge] = array('#type' => 'checkbox');
+	}
     
-    // Build the fields
-    $fields = array();
-    
-    foreach ($colnames as $colname) {
-      $fields[$colname] = array(
-        'id' => $colname,
-        'table' => $rawtablename,
-        'field' => $colname,
-        'label' => $colname,
-        'exclude' => 0,
-        'relationship' => 'none',
-      );
-      
-      //Generate the table fields checkboxes
-      $selected = 'field_selected_' . $colname;
-      $form['detail_fields'][$selected] = array('#type' => 'checkbox', '#title' => t($colname));
-      
-      //Generate Sort order fields
-      $display_order = 'field_display_order_' . $colname;
-      $form['detail_fields'][$display_order] = array('#type' => 'textfield', '#size' => 10);
-      
-      // generate title option
-      $detail_title = 'field_detail_title_' . $colname;
-      $form['detail_fields'][$detail_title] = array(
-        '#type' => 'radios',
-        '#options' => array(
-            '0' => ''
-        ),
-      );
-      
-      // generate the line break
-      $line_break = 'field_line_break_' . $colname;
-      $form['detail_fields'][$line_break] = array('#type' => 'checkbox');
-      
-      // generate the badge field
-      $badge = 'field_badge_' . $colname;
-      $form['detail_fields'][$badge] = array('#type' => 'checkbox');
-    }
-    
-    //dpm($form);
-    
-    return $form;
+	//dpm($form);
+	return $form;
 }
 
 /**

@@ -10,13 +10,17 @@
  similar code in openlayers/modules/openlayers_ui/includes/openlayers_ui.presets.inc 
  on line 464
  */
-function opendata_create_preset($preset_name) {
+function opendata_create_preset($preset_name, $preset_type) {
 	// make sure preset name is alpha-numeric
 	$pname = strtolower($preset_name);
 	$pname = str_replace(' ', '_', $pname);
 
+	if ($preset_type == 'detail') {
+		$pname = $pname . '_detail';
+	}
+
 	// get the map data array
-	$map = _opendata_build_map($pname);
+	$map = _opendata_build_map($pname, $preset_type);
 
 	$preset = new stdClass();
 	$preset->disabled = FALSE;
@@ -37,17 +41,28 @@ function opendata_create_preset($preset_name) {
 	}
 }
 
-function _opendata_build_map($pname) {
+function _opendata_build_map($pname, $preset_type) {
+	if ($preset_type == 'detail') {
+		$height = '200px';
+		$centerpoint = '-96.767578121148, 37.926867600188';
+		$zoom = '4';
+		$dot_style = 'dped_blue_large';
+	} else {
+		$height = '500px';
+		$centerpoint = '-101.07421874601, 39.368279147837';
+		$zoom = '2';
+		$dot_style = 'dped_blue';
+	}
 	$map = array(
 		'width' => 'auto',
-		'height' => '500px', 
+		'height' => $height,
 		'image_path' => 'profiles/ngp_deped/openlayers/dark/',
 		'css_path' => '',
 		'proxy_host' => '',
 		'center' => array( 
 			'initial' => array(
-				'centerpoint' => '-96.767578121148, 37.926867600188',
-				'zoom' => '4',
+				'centerpoint' => $centerpoint,
+				'zoom' => $zoom,
 			),
 			'restrict' => array(
 				'restrictextent' => 0, 
@@ -64,7 +79,7 @@ function _opendata_build_map($pname) {
 			),
 			'openlayers_behavior_panzoombar' => array(),
 			'openlayers_behavior_zoomtolayer' => array(
-				'zoomtolayer' => 'od_oii_2010_cc2_openlayers_1', 
+				'zoomtolayer' => $pname . '_openlayers_1', 
 				'point_zoom_level' => '5',
 			),
 		),
@@ -72,23 +87,20 @@ function _opendata_build_map($pname) {
 		'layers' => array(
 			'dped_browser_world_light_usa' => 'dped_browser_world_light_usa',
 			$pname . '_openlayers_1' => $pname . '_openlayers_1',
-			//'od_oii_2010_cc2_openlayers_1' => 'od_oii_2010_cc2_openlayers_1',
 		),
 		'layer_styles' => array(
 			$pname . '_openlayers_1' => 'dped_blue',
-			//'od_oii_2010_cc2_openlayers_1' => 'dped_blue',
 		),
 		'layer_activated' => array(
 			$pname . '_openlayers_1' => $pname . '_openlayers_1',
-			//'od_oii_2010_cc2_openlayers_1' => 'od_oii_2010_cc2_openlayers_1',
 		),
 		'layer_switcher' => array(),
 		'projection' => '900913', 
 		'displayProjection' => '4326', 
 		'styles' => array(
-			'default' => 'dped_blue',
-			'select' => 'dped_blue',
-			'temporary' => 'dped_blue',
+			'default' => $dot_style,
+			'select' => $dot_style,
+			'temporary' => $dot_style,
 		),
 		'options' => NULL,
 	);

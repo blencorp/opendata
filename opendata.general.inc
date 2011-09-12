@@ -5,8 +5,10 @@
  * OpenData Module
  */
 
-module_load_include('inc', 'opendata', 'opendata.helper');
 drupal_add_css(drupal_get_path('module', 'opendata') . '/opendata.css');
+module_load_include('inc', 'opendata', 'opendata.helper');
+module_load_include('inc', 'opendata', 'opendata.context');
+module_load_include('inc', 'opendata', 'opendata.preset');
 
 /** 
  * Creates the primary form for opendata. 
@@ -387,7 +389,8 @@ function opendata_general_views(&$form_state) {
 		
 	// check if "Include Map" has been checked for summary and detail pages
 	$doMap_summary = $form_state['storage']['summary_values']['summary_map']['map_option'];
-	$doMap_detail = $form_state['storage']['detail_map']['map_option'];
+	//$doMap_detail = $form_state['storage']['detail_map']['map_option'];
+	$doMap_detail = $form_state['storage']['published_values']['map_option'];
 	
 	//Detail Fields
 
@@ -433,17 +436,16 @@ function opendata_general_views(&$form_state) {
   opendata_create_display(&$view, $type, &$form_state);
     
   ##
-  ## Create a 'open layers' display to hold the OL data
+  ## Summary map: create OpenLayers preset and views display
   ##
   if ($doMap_summary == 1) {
     $type = 'openlayers_data';
     opendata_create_display(&$view, $type, &$form_state);
       
-    // load opendata.preset.inc so we can call the preset function
-    module_load_include('inc', 'opendata', 'opendata.preset');
-  
     // create a new OL preset
-    $isCreated = opendata_create_preset($unique_name);
+		$preset_name = $unique_name;
+		$preset_type = 'summary';
+    $isCreated = opendata_create_preset($preset_name, $preset_type);
   
     // if preset is created successfully, create the map display 
     if ($isCreated) {
@@ -451,6 +453,30 @@ function opendata_general_views(&$form_state) {
       opendata_create_display(&$view, $type, &$form_state);
     } else {
       drupal_set_message(t('Error: Could not create OpenLayer preset. Please contact your Administrator.'), 'error');   
+    }
+
+		// reset flag
+		$isCreated = false;
+  }
+    
+  ##
+  ## Detail map: create OpenLayers preset and views display 
+  ##
+  if ($doMap_detail == 1) {
+    $type = 'openlayers_data_detail';
+    opendata_create_display(&$view, $type, &$form_state);
+      
+    // create a new OL preset
+		$preset_name = $unique_name;
+		$preset_type = 'detail';
+    $dmap_created = opendata_create_preset($preset_name, $preset_type);
+  
+    // if preset is created successfully, create the map block display 
+    if ($dmap_created) {
+      $type = 'map_block_detail';
+      opendata_create_display(&$view, $type, &$form_state);
+    } else {
+      drupal_set_message(t('Error: Could not create OpenLayer preset for detail view. Please contact your Administrator.'), 'error');   
     }
   }
     
@@ -469,7 +495,7 @@ function opendata_general_views(&$form_state) {
 	#debug
 	//dpm($view);
 	
-	//Build context
+	//=================== build summary context
 	$cname = $unique_name;
 	$tag = 'OpenData Module';
 	
@@ -483,15 +509,34 @@ function opendata_general_views(&$form_state) {
 	$reactions[] = array('views', $unique_name . '-block_2', 'content_top', 1);
 	$reactions[] = array('views', $unique_name . '-page_1', 'content_top', 2);
     
-  // load opendata.context.inc so we can call the context function
-  module_load_include('inc', 'opendata', 'opendata.context');
-  
   // create a new context
   $isCreated = opendata_create_context($cname, $tag, $conditions, $reactions);
     
   if (!$isCreated) {
-      drupal_set_message(t('A Context failed to be created. Please contact your Administrator.'), 'error');
+      drupal_set_message(t('Error: Could not create summary context. Please contact your Administrator.'), 'error');
   }
+
+	// reset flag
+	$isCreated = false;
+
+	//=================== build summary context
+  if ($doMap_detail == 1) {
+		$cname = $unique_name . '_detail';
+		$tag = 'OpenData Module';
+		
+		$conditions = array();
+		$conditions[] = $unique_name . ':page_2';
+		
+		$reactions = array();
+		$reactions[] = array('views', $unique_name . '-block_3', 'right', 0);
+			
+		// create a new context
+		$isCreated = opendata_create_context($cname, $tag, $conditions, $reactions);
+			
+		if (!$isCreated) {
+				drupal_set_message(t('Error: Could not create summary context. Please contact your Administrator.'), 'error');
+		}
+	}
     
   //Save view
   $view->save();
@@ -515,12 +560,4 @@ function opendata_general_views(&$form_state) {
 	$link = $base_url . '/' . $url;
 	drupal_set_message(t('Dataset Published Successfully!'));
 	drupal_set_message(t('Showtime @ !url', array('!url' => l($link, $link))));
-
-	/*
-	$ld = openlayers_preset_load($unique_name);
-	drupal_set_message(t('Preset name: !pname', array('!pname' => $ld->name)));
-	if ($ld && $ld->type != t('Default')) {
-		drupal_set_message(t('The were was a problem loading the OL preset !ol.', array('!ol' => $unique_name)));
-	}
-	*/
 }
