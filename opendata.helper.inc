@@ -7,12 +7,16 @@
 function _opendata_get_title_field($colnames, $fields) {
 	$tfield = 'None';
 
+	// instantiate a flag to see if a title field is selected
+	$is_titled = false;
+
 	foreach ($colnames as $colname) {    
 		$title_colname = 'field_detail_title_' . $colname;
 
 		//if ($fields[$title_colname] == '1') {
 		if ($fields[$title_colname] == '0') {
 			$tfield = $colname;
+			$is_titled = true;
 		}
 	}
 
