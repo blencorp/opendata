@@ -10,20 +10,35 @@ function _opendata_get_title_field($colnames, $fields) {
 	foreach ($colnames as $colname) {    
 		$title_colname = 'field_detail_title_' . $colname;
 
-		if ($fields[$title_colname] == '1') {
+		//if ($fields[$title_colname] == '1') {
+		if ($fields[$title_colname] == '0') {
 			$tfield = $colname;
 		}
 	}
+
+	//TODO: if no title field is selected, force the second field to be the title field.
 
 	//dbm($colnames);
 
 	return $tfield;
 }
 
-function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subtitle, $id_field, $detail_url) {
+function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subtitle, $id_field, $detail_url, $detail_title) {
   // instantiate an array to hold the final fields structure 
   $map_fields = array();
 
+	// set the detail page link title as the second field
+	$map_fields[$detail_title] = array(
+		'id' => $detail_title,
+		'table' => $data_table_name,
+		'field' => $detail_title,
+		'label' => _opendata_formatter($detail_title, 'space'),
+		'relationship' => 'none',
+    'separator' => '',
+		'exclude' => 1,
+	);
+	$map_fields[$detail_title]['display_order'] = 1;
+	
   $map_fields[$id_field] = array(
     'id' => $id_field,
     'table' => $data_table_name,

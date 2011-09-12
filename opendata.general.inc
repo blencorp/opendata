@@ -493,7 +493,6 @@ function opendata_general_views(&$form_state) {
   $type = 'detail_page';
   opendata_create_display(&$view, $type, &$form_state);
 
-<<<<<<< HEAD
 	#debug
 	//dpm($view);
 	
