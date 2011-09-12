@@ -7,6 +7,7 @@
 
 module_load_include('inc', 'opendata', 'opendata.helper');
 drupal_add_css(drupal_get_path('module', 'opendata') . '/opendata.css');
+drupal_add_js(drupal_get_path('module', 'opendata') . '/opendata.js');
 
 /** 
  * Creates the primary form for opendata. 
@@ -174,8 +175,8 @@ function opendata_summary($form_state) {
     '#title' => t('CSV Download'),
     '#description' => t('Please select to allow visitors to download raw CSV file.'),
   );
-        
-  //Append the columns based on the selected data table
+
+  // append the columns based on the selected data table
   $form[] = _opendata_build_summary_listing($step_1['data_table']);  
   
   //Map field set
@@ -271,8 +272,8 @@ function opendata_detail($form_state) {
     '#type' => 'item',
     '#title' => t('Fiscal Year - ' . $step_2['fiscal_year']),
   );
-        
-  //Append the columns based on the selected data table
+  
+  // append the columns based on the selected data table
   $form[] = _opendata_build_detail_listing($step_2['data_table']);  
     
   $form['detail_map']['map_option'] = array(

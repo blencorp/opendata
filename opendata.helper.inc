@@ -399,6 +399,17 @@ function _opendata_build_summary_listing($tableid) {
     '#suffix' => '</div>',
   );
   
+  // check all checkbox
+  $form['summary_fields']['checkall'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Check all fields'),
+    '#attributes' => array(
+      'onclick' => 'checkall("summary_fields_checkbox")',
+      'class' => 'checkall_checkbox',
+    ),
+    '#prefix' => '<div class="clear-fields">',
+    '#suffix' => '</div>',
+  );
   $form['summary_fields']['lbl_display_fields'] = array(
       '#type' => 'item',
       '#title' => t('Summary Listing Fields'),
@@ -437,7 +448,10 @@ function _opendata_build_summary_listing($tableid) {
     $selected = 'field_selected_' . $colname;
     $form['summary_fields'][$selected] = array(
       '#type' => 'checkbox', 
-      '#title' => t($colname)
+      '#title' => t($colname),
+      '#attributes' => array(
+        'class' => 'summary_fields_checkbox',
+      ),
     );
     
     //Generate Sort order fields
@@ -491,39 +505,51 @@ function _opendata_build_detail_listing($tableid) {
         '#prefix' => '<div class="opendata-detail-fields">',
         '#suffix' => '</div>',
     );
-    
+
+    // check all checkbox
+    $form['detail_fields']['checkall'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Check all fields'),
+      '#attributes' => array(
+        'onclick' => 'checkall("detail_fields_checkbox")',
+        'class' => 'checkall_checkbox',
+      ),
+      '#prefix' => '<div class="clear-fields">',
+      '#suffix' => '</div>',
+    );
+
     //Build the columns
     $colnames = array();
     $colnames = _opendata_get_fields($tableid);
     
-    $form['detail_fields']['lbl_display_fields'] = array(
-      '#type' => 'item',
-      '#title' => t('Detail Listing Fields'),
+  $form['detail_fields']['lbl_display_fields'] = array(
+    '#type' => 'item',
+    '#title' => t('Detail Listing Fields'),
   );
   $form['detail_fields']['lbl_display_order'] = array(
-      '#type' => 'item',
-      '#title' => t('Display Field'),
+    '#type' => 'item',
+    '#title' => t('Display Field'),
   );
   $form['detail_fields']['lbl_title'] = array(
-      '#type' => 'item',
-      '#title' => t('Title'),
+    '#type' => 'item',
+    '#title' => t('Title'),
   );
   $form['detail_fields']['lbl_line_break'] = array(
-      '#type' => 'item',
-      '#title' => t('Line Break'),
+    '#type' => 'item',
+    '#title' => t('Line Break'),
   );
   $form['detail_fields']['lbl_badge'] = array(
-      '#type' => 'item',
-      '#title' => t('Badge'),
+    '#type' => 'item',
+    '#title' => t('Badge'),
   );
     
-    // Build the fields
-    $fields = array();
+  // Build the fields
+  $fields = array();
     
-    foreach ($colnames as $colname) {
-      $fields[$colname] = array(
-        'id' => $colname,
-        'table' => $rawtablename,
+  foreach ($colnames as $colname) {
+    $fields[$colname] = array(
+      'id' => $colname,
+      'table' => $rawtablename,
         'field' => $colname,
         'label' => $colname,
         'exclude' => 0,
@@ -532,7 +558,13 @@ function _opendata_build_detail_listing($tableid) {
       
       //Generate the table fields checkboxes
       $selected = 'field_selected_' . $colname;
-      $form['detail_fields'][$selected] = array('#type' => 'checkbox', '#title' => t($colname));
+      $form['detail_fields'][$selected] = array(
+        '#type' => 'checkbox', 
+        '#title' => t($colname),
+        '#attributes' => array(
+          'class' => 'detail_fields_checkbox',
+        ), 
+      );
       
       //Generate Sort order fields
       $display_order = 'field_display_order_' . $colname;

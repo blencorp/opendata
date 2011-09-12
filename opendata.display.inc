@@ -128,6 +128,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
         'relationship' => 'none',
       ),
     ));
+    $handler->override_option('filters', array());
     $handler->override_option('items_per_page', 1);
     $handler->override_option('use_pager', '0');
     $handler->override_option('style_plugin', 'default');
