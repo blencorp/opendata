@@ -1,18 +1,24 @@
 .opendata-summary-fields {
-	border: 0px solid #990000;
+  border: 0px solid #990000;
 }
 .opendata-summary-fields .form-item {
-	float: left;
-	height: 25px;
-	width: 23%;
-	border-bottom: 1px #efefef solid;
+  float: left;
+  height: 25px;
+  width: 23%;
+  border-bottom: 1px #efefef solid;
 }
 .opendata-detail-fields {
-	border: 0px;
+  border: 0px;
 }
 .opendata-detail-fields .form-item {
-	float: left;
-	width: 18.5%;
-	height: 25px;
-	border-bottom: 1px #efefef solid;
+  float: left;
+  width: 18.5%;
+  height: 25px;
+  border-bottom: 1px #efefef solid;
+}
+
+.clear-fields, 
+.clear-fields .form-item { 
+  float: left; 
+  width: 98% !important; 
 }

@@ -22,7 +22,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 
   $unique_name = substr('od_' . $office . '_' . $fiscal_year . '_' . _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'underscore'), 0, 30);
 
-	$url = 'grants/' . $office . '/' . $fiscal_year . '/' . $title;
+  $url = 'grants/' . $office . '/' . $fiscal_year . '/' . $title;
 
   $page_limit = $form_state['storage']['summary_values']['page_limit'];
   $table_key = $form_state['storage']['summary_values']['table_key'];
@@ -35,14 +35,14 @@ function opendata_create_display(&$view, $type, &$form_state) {
   $colnames = array();
   $colnames = _opendata_get_fields($data_table_id);
 
-	// save relevant field names for the map data
-	$other_lat = $colnames[$map_lat];
-	$other_lon = $colnames[$map_long];
-	$name_field = $colnames[$map_title];
-	$description_field = $colnames[$map_sub_title];
+  // save relevant field names for the map data
+  $other_lat = $colnames[$map_lat];
+  $other_lon = $colnames[$map_long];
+  $name_field = $colnames[$map_title];
+  $description_field = $colnames[$map_sub_title];
 
-	// get the name of the selected table key field
-	$table_key = $colnames[$table_key];
+  // get the name of the selected table key field
+  $table_key = $colnames[$table_key];
 
   // get an array of the detail page fields
   $detail_fields = array();
@@ -63,12 +63,17 @@ function opendata_create_display(&$view, $type, &$form_state) {
   $selected_fields = array();
   $selected_fields = _opendata_build_view_summary_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key, $detail_title_raw);
 
+  // get selected fields
+  $filter_fields = array();
+  $filter_fields = _opendata_build_view_filter_fields($data_table_name, $colnames, $summary_fields, $detail_url, $table_key);
+
 	//===========================================================================
 	// begin display construction
 	//===========================================================================
 	if ($type == 'default') {
 		$handler = $view->new_display('default', $full_title . ' default', 'default');
 		$handler->override_option('fields', $selected_fields);
+	  $handler->override_option('filters', $filter_fields);
 		$handler->override_option('access', array(
 			'type' => 'perm',
 			'perm' => 'table wizard administration',
@@ -128,6 +133,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 				'relationship' => 'none',
 			),
 		));
+    $handler->override_option('filters', array());
 		$handler->override_option('items_per_page', 1);
 		$handler->override_option('use_pager', '0');
 		$handler->override_option('style_plugin', 'default');
@@ -250,9 +256,9 @@ function opendata_create_display(&$view, $type, &$form_state) {
     // build detail page fields
     $selected_fields = array();
     $a1 = $data_table_name;
-		$a2 = $colnames;
-		$a3 = $detail_fields;
-		$a4 = $table_key;
+    $a2 = $colnames;
+    $a3 = $detail_fields;
+    $a4 = $table_key;
     $selected_fields = _opendata_build_detail_view_fields($a1, $a2, $a3, $a4);
 
     $handler->override_option('fields', $selected_fields);
@@ -302,11 +308,12 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		}
 		*/
 		//$handler->override_option('title', $detail_title_raw);
+    $handler->override_option('filters', array());
 		$handler->override_option('title', $full_title);
+    $handler->override_option('path', $url . '/detail/%');
     $handler->override_option('style_plugin', 'default');
     $handler->override_option('style_options', NULL);
     $handler->override_option('row_plugin', 'fields');
-    $handler->override_option('path', $url . '/detail/%');
 	} 
 	return $form;
 }
