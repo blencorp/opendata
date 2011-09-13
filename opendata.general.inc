@@ -10,6 +10,8 @@ drupal_add_js(drupal_get_path('module', 'opendata') . '/opendata.js');
 module_load_include('inc', 'opendata', 'opendata.helper');
 module_load_include('inc', 'opendata', 'opendata.context');
 module_load_include('inc', 'opendata', 'opendata.preset');
+module_load_include('inc', 'opendata', 'opendata.display');
+
 
 /** 
  * Creates the primary form for opendata. 
@@ -415,34 +417,29 @@ function opendata_general_views(&$form_state) {
   $view->api_version = 2;
   $view->disabled = FALSE; 
 
-  // load the view display creator function 
-  module_load_include('inc', 'opendata', 'opendata.display');
-
-  ##
-  ## Create a 'default' display
-  ##
-  $type = 'default';
-  opendata_create_display(&$view, $type, &$form_state);
+  //=== create 'default' display
+  $display_type = 'default';
+  opendata_create_display(&$view, $display_type, &$form_state);
     
-  ##
-  ## Create a 'block' display to show the description text
-  ##
-  $type = 'desc_block';
-  opendata_create_display(&$view, $type, &$form_state);
+  //=== create a 'block' display to show the description text
+  $display_type = 'desc_block';
+  opendata_create_display(&$view, $display_type, &$form_state);
 
-  ##
-  ## Create a 'page' display to show table listing
-  ##
-  $type = 'summary_page';
-  opendata_create_display(&$view, $type, &$form_state);
+  //=== create a 'page' display to show table listing
+  $display_type = 'page_summary';
+  opendata_create_display(&$view, $display_type, &$form_state);
     
-  ##
-  ## Summary map: create OpenLayers preset and views display
-  ##
+	// reset display_type
+	$display_type = '';
+
+  //=== summary map: create OpenLayers preset and views display
   if ($doMap_summary == 1) {
-    $type = 'openlayers_data';
-    opendata_create_display(&$view, $type, &$form_state);
+    $display_type = 'openlayers_data_summary';
+    opendata_create_display(&$view, $display_type, &$form_state);
       
+		// reset display_type
+		$display_type = '';
+
     // create a new OL preset
 		$preset_name = $unique_name;
 		$preset_type = 'summary';
@@ -450,8 +447,8 @@ function opendata_general_views(&$form_state) {
   
     // if preset is created successfully, create the map display 
     if ($isCreated) {
-      $type = 'map_block';
-      opendata_create_display(&$view, $type, &$form_state);
+      $display_type = 'map_block';
+      opendata_create_display(&$view, $display_type, &$form_state);
     } else {
       drupal_set_message(t('Error: Could not create OpenLayer preset. Please contact your Administrator.'), 'error');   
     }
@@ -460,13 +457,21 @@ function opendata_general_views(&$form_state) {
 		$isCreated = false;
   }
     
-  ##
-  ## Detail map: create OpenLayers preset and views display 
-  ##
+  //=== create detail page display 
+  $display_type = 'page_detail';
+  opendata_create_display(&$view, $display_type, &$form_state);
+
+		// reset display_type
+		$display_type = '';
+
+  //=== detail map: create OpenLayers preset and views display 
   if ($doMap_detail == 1) {
-    $type = 'openlayers_data_detail';
-    opendata_create_display(&$view, $type, &$form_state);
+    $display_type = 'openlayers_data_detail';
+    opendata_create_display(&$view, $display_type, &$form_state);
       
+		// reset display_type
+		$display_type = '';
+
     // create a new OL preset
 		$preset_name = $unique_name;
 		$preset_type = 'detail';
@@ -474,24 +479,23 @@ function opendata_general_views(&$form_state) {
   
     // if preset is created successfully, create the map block display 
     if ($dmap_created) {
-      $type = 'map_block_detail';
-      opendata_create_display(&$view, $type, &$form_state);
+      $display_type = 'map_block_detail';
+      opendata_create_display(&$view, $display_type, &$form_state);
+
+			// reset display_type
+			$display_type = '';
+
     } else {
       drupal_set_message(t('Error: Could not create OpenLayer preset for detail view. Please contact your Administrator.'), 'error');   
     }
   }
     
-  ##
-  ## Create a 'block' display to show the CSV button
-  ##
-  $type = 'csv_block';
-  opendata_create_display(&$view, $type, &$form_state);
-    
-  ##
-  ## Create a 'page' display to show the detail page
-  ##
-  $type = 'detail_page';
-  opendata_create_display(&$view, $type, &$form_state);
+	//=== create a 'block' display to show the CSV button
+  $display_type = 'csv_block';
+  opendata_create_display(&$view, $display_type, &$form_state);
+
+	// reset display_type
+	$display_type = '';
 
 	#debug
 	//dpm($view);

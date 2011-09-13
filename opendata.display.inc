@@ -141,13 +141,13 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$handler->override_option('row_plugin', 'fields');
 		$handler->override_option('block_description', '');
 		$handler->override_option('block_caching', -1);
-	} elseif ($type == 'summary_page') {
+	} elseif ($type == 'page_summary') {
 		$url = 'grants/' . $office . '/' . $fiscal_year . '/' . $title;
-		$handler = $view->new_display('page', $full_title . ' summary table listing', 'page_1');
+		$handler = $view->new_display('page', $full_title . ' summary listing page', 'page_1');
 		$handler->override_option('title', $full_title);
 		$handler->override_option('path', $url);
-	} elseif ($type == 'openlayers_data') {
-		$handler = $view->new_display('openlayers', $full_title . ' map data', 'openlayers_1');
+	} elseif ($type == 'openlayers_data_summary') {
+		$handler = $view->new_display('openlayers', $full_title . ' summary map data', 'openlayers_1');
 		$map_fields = array();
 		$a1 = $data_table_name; 
 		$a2 = $other_lat;
@@ -156,7 +156,8 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$a5 = $description_field;
 		$a6 = $table_key;
 		$a7 = $detail_url;
-		$map_fields = _opendata_build_map_fields($a1, $a2, $a3, $a4, $a5, $a6, $a7);
+		$a8 = $detail_title_raw;
+		$map_fields = _opendata_build_map_fields($a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8);
     $handler->override_option('fields', $map_fields);
 		$handler->override_option('items_per_page', 0);
 		$handler->override_option('style_plugin', 'openlayers_data');
@@ -175,8 +176,8 @@ function opendata_create_display(&$view, $type, &$form_state) {
 				'description_field' => $description_field,
 			),
 		));
-	} elseif ($type == 'detail_openlayers_data') {
-		$handler = $view->new_display('openlayers', $full_title . ' detail map data', 'openlayers_1');
+	} elseif ($type == 'openlayers_data_detail') {
+		$handler = $view->new_display('openlayers', $full_title . ' detail map data', 'openlayers_2');
 		$map_fields = array();
 		$a1 = $data_table_name; 
 		$a2 = $other_lat;
@@ -185,7 +186,8 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$a5 = $description_field;
 		$a6 = $table_key;
 		$a7 = $detail_url;
-		$map_fields = _opendata_build_map_fields($a1, $a2, $a3, $a4, $a5, $a6, $a7);
+		$a8 = $detail_title_raw;
+		$map_fields = _opendata_build_map_fields($a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8);
     $handler->override_option('fields', $map_fields);
 		$handler->override_option('items_per_page', 0);
 		$handler->override_option('style_plugin', 'openlayers_data');
@@ -205,7 +207,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 			),
 		));
 	} elseif ($type == 'map_block_detail') {
-		$handler = $view->new_display('block', $full_title.' detail map block', 'block_3');
+		$handler = $view->new_display('block', $full_title . ' detail map block', 'block_3');
 		$handler->override_option('items_per_page', 0);
 		$handler->override_option('use_pager', '0');
 		$handler->override_option('style_plugin', 'openlayers_map');
@@ -215,7 +217,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$handler->override_option('block_description', '');
 		$handler->override_option('block_caching', -1);
 	} elseif ($type == 'map_block') {
-		$handler = $view->new_display('block', $full_title . ' map block', 'block_2');
+		$handler = $view->new_display('block', $full_title . ' summary map block', 'block_2');
 		$handler->override_option('items_per_page', 0);
 		$handler->override_option('use_pager', '0');
 		$handler->override_option('style_plugin', 'openlayers_map');
@@ -250,8 +252,8 @@ function opendata_create_display(&$view, $type, &$form_state) {
       'default' => 0,
       'block_1' => 0,
     ));
-  } elseif ($type == 'detail_page') {
-    $handler = $view->new_display('page', $full_title . ' detail', 'page_2');
+  } elseif ($type == 'page_detail') {
+    $handler = $view->new_display('page', $full_title . ' detail page', 'page_2');
     
     // build detail page fields
     $selected_fields = array();
