@@ -4,6 +4,67 @@
  * OpenData Module Helper Functions
  */
 
+function _opendata_build_csv_fields($data_table_name, $colnames, $summary_fields, $table_key) {
+  // instantiate an array to hold the final fields structure 
+	$csv_fields = array();
+
+	// IMPORTANT!
+	// set the table key as the first field
+	// to pass the right value to the detail page
+	$csv_fields[$table_key] = array(
+	 'id' => $table_key,
+	 'table' => $data_table_name,
+	 'field' => $table_key,
+	 'label' => _opendata_formatter($table_key, 'space'),
+	 'relationship' => 'none',
+	 'separator' => '',
+	 'exclude' => 1,
+	);
+	$csv_fields[$table_key]['display_order'] = 0;
+
+	// find out the table key column name
+	$table_key_column = $colnames[$table_key];
+
+	// a temporary display order field to hold, if the
+	// user does not enter any display order
+	$temp_display_order = 999;
+
+	foreach ($colnames as $colname) {    
+		// Add the field_ prefix to the column name
+		$selected_colname = 'field_selected_' . $colname;
+		$exportable_colname = 'field_exportable_' . $colname;
+		$sort_colname = 'field_display_order_' . $colname;   
+
+		// If the field is selected, build the view field
+		if ($summary_fields[$selected_colname] == 1 || $summary_fields[$exportable_colname] == 1) {
+			$csv_fields[$colname] = array(
+				'id' => $colname,
+				'table' => $data_table_name,
+				'field' => $colname,
+				'label' => _opendata_formatter($colname, 'space'),
+				'exclude' => 0,
+				'relationship' => 'none',
+				'alter' => array(
+					'make_link' => 1,
+					'path' => $url,
+				),
+			);
+			 
+			if ($summary_fields[$sort_colname] != '' or $summary_fields[$sort_colname] > 0) {
+				$csv_fields[$colname]['display_order'] = $summary_fields[$sort_colname];
+			} else {
+				$csv_fields[$colname]['display_order'] = $temp_display_order;
+				$temp_display_order++;
+			}
+		}
+	}
+
+	// sort the display order
+	$csv_fields = _opendata_sort_display_order($csv_fields, 1);
+
+	return $csv_fields;
+}
+
 function _opendata_get_title_field($colnames, $fields) {
 	$tfield = 'None';
 
@@ -468,6 +529,10 @@ function _opendata_build_summary_listing($tableid) {
       '#type' => 'item',
       '#title' => t('Sortable?'),
   );
+  $form['summary_fields']['lbl_exportable'] = array(
+      '#type' => 'item',
+      '#title' => t('Exportable?'),
+  );
   
   //Build the columns
   $colnames = array();
@@ -518,6 +583,14 @@ function _opendata_build_summary_listing($tableid) {
     //Generate the sortable checkboxes
     $sortable = 'field_sortable_' . $colname;
     $form['summary_fields'][$sortable] = array('#type' => 'checkbox', '#label' => 'Sortable');
+
+    // generate exportable checkboxes 
+    $exportable = 'field_exportable_' . $colname;
+    $form['summary_fields'][$exportable] = array(
+			'#type' => 'checkbox', 
+			'#label' => 'exportable',
+			'#default_value' => variable_get('exportable', 1),
+		);
   }
   
   //Debug
@@ -616,9 +689,8 @@ function _opendata_build_detail_listing($tableid) {
       $detail_title = 'field_detail_title_' . $colname;
       $form['detail_fields'][$detail_title] = array(
         '#type' => 'radios',
-        '#options' => array(
-            '0' => ''
-        ),
+        '#options' => array('0' => ''),
+        //'#options' => array('0', '1'),
       );
       
       // generate the line break

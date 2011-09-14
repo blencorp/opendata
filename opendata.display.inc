@@ -227,7 +227,20 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$handler->override_option('block_description', '');
 		$handler->override_option('block_caching', -1);
 	} elseif ($type == 'csv_block') {
+		// there's a possibility that the user might check the csv download box 
+		// but not mark any of the summary fields as exportable. in this case, 
+		// we should just export the default fields
+
     $handler = $view->new_display('feed', $full_title . ' csv block', 'feed_1');
+
+		$csv_fields = array();
+		$a1 = $data_table_name; 
+		$a2 = $colnames;
+		$a3 = $summary_fields;
+		$a4 = $table_key;
+		$csv_fields = _opendata_build_csv_fields($a1, $a2, $a3, $a4);
+    $handler->override_option('fields', $csv_fields);
+
     $handler->override_option(
         'items_per_page', 0
     );

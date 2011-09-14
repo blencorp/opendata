@@ -2,9 +2,13 @@
   border: 0px solid #990000;
 }
 .opendata-summary-fields .form-item {
+	border: 1px solid #990000;
   float: left;
   height: 25px;
+	/*
   width: 23%;
+	*/
+  width: 17%;
   border-bottom: 1px #efefef solid;
 }
 .opendata-detail-fields {

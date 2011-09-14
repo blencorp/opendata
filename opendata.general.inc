@@ -385,6 +385,9 @@ function opendata_general_views(&$form_state) {
 	
 	$page_limit = $form_state['storage']['summary_values']['page_limit'];
 	$table_key = $form_state['storage']['summary_values']['table_key'];
+
+	$csv_download = $form_state['storage']['summary_values']['csv_download'];
+
 	$map_title = $form_state['storage']['summary_values']['summary_map']['map_title'];
 	$map_sub_title = $form_state['storage']['summary_values']['summary_map']['map_sub_title'];
 	$map_lat = $form_state['storage']['summary_values']['summary_map']['map_lat'];
@@ -392,7 +395,6 @@ function opendata_general_views(&$form_state) {
 		
 	// check if "Include Map" has been checked for summary and detail pages
 	$doMap_summary = $form_state['storage']['summary_values']['summary_map']['map_option'];
-	//$doMap_detail = $form_state['storage']['detail_map']['map_option'];
 	$doMap_detail = $form_state['storage']['published_values']['map_option'];
 	
 	//Detail Fields
@@ -490,12 +492,14 @@ function opendata_general_views(&$form_state) {
     }
   }
     
-	//=== create a 'block' display to show the CSV button
-  $display_type = 'csv_block';
-  opendata_create_display(&$view, $display_type, &$form_state);
+	//=== create CSV download 'block', if the csv export button is marked 
+	if ($csv_download == 1) {
+		$display_type = 'csv_block';
+		opendata_create_display(&$view, $display_type, &$form_state);
 
-	// reset display_type
-	$display_type = '';
+		// reset display_type
+		$display_type = '';
+	}
 
 	#debug
 	//dpm($view);
