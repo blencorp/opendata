@@ -1,12 +1,16 @@
-; $Id: opendata.info,v 1.4 2011/08/05 20:02:34 blencorp Exp $
 name = opendata
 description = Visualizes OpenData sets
+core = 6.x
 package = Feeds
 dependencies[] = feeds
-core = 6.x
-
-; Information added by drupal.org packaging script on 2010-10-23
-version = "6.x-1.1"
-core = "6.x"
-project = "opendata"
-datestamp = "1287866159"
+dependencies[] = views_customfield  
+dependencies[] = charts_graphs  
+dependencies[] = views 
+dependencies[] = views_groupby
+dependencies[] = views_or
+dependencies[] = context 
+dependencies[] = openlayers 
+dependencies[] = ctools 
+dependencies[] = mapbox 
+dependencies[] = quicktabs
+dependencies[] = schema

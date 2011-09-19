@@ -121,79 +121,58 @@ function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subti
 }
 
 function _opendata_build_view_filter_fields($data_table_name, $colnames, $s_fields, $url, $table_key) {
+	// Holds the built out views fields
+	$s_selected_fields = array();
 
-    #debug
-    #dpm($s_fields);
+	// find out the table key column name
+	$table_key_column = $colnames[$table_key];
 
-    // Holds the built out views fields
-    $s_selected_fields = array();
-    
-    /*
-    // IMPORTANT!
-    // set the table key as the first field
-    // to pass the right value to the detail page
-    $s_selected_fields[$table_key] = array(
-        'id' => $table_key,
-        'table' => $data_table_name,
-        'field' => $table_key,
-        'label' => _opendata_formatter($table_key, 'space'),
-        'relationship' => 'none',
-        'separator' => '',
-        'exclude' => 1,
-    );
-    $s_selected_fields[$table_key]['display_order'] = 0;
-    */
+	// a temporary display order field to hold, if the
+	// user does not enter any display order
+	$temp_display_order = 999;
 
-    // find out the table key column name
-    $table_key_column = $colnames[$table_key];
+	foreach ($colnames as $colname) {
+		// Add the field_ prefix to the column name
+		$selected_colname = 'field_selected_' . $colname;
+		$sort_colname = 'field_display_order_' . $colname;
+		
+		// If the field is selected, build the view field
+		if ($s_fields[$selected_colname] == 1) {
+			$s_selected_fields[$colname] = array(
+				'operator' => 'contains',
+				'value' => '',
+				'group' => '',
+				'exposed' => TRUE,
+				'expose' => array(
+					'use_operator' => 0,
+					'operator' => $colname . '_op',
+					'identifier' => $colname,
+					//'label' => $colname,
+					'label' => _opendata_formatter($colname, "space"),
+					'optional' => 1,
+					'remember' => 0,   
+				),
+				//'case' => 1,
+				'case' => 0,
+				'id' => $colname,
+				'table' => $data_table_name,
+				'field' => $colname,
+				'label' => _opendata_formatter($colname, 'space'),
+			);
 
-    // a temporary display order field to hold, if the
-    // user does not enter any display order
-    $temp_display_order = 999;
+			if ($s_fields[$sort_colname] != '' or $s_fields[$sort_colname] > 0) {
+				$s_selected_fields[$colname]['display_order'] = $s_fields[$sort_colname];
+			} else {
+				$s_selected_fields[$colname]['display_order'] = $temp_display_order;
+				$temp_display_order++;
+			}
+		}
+	}
 
-    foreach ($colnames as $colname) {
-        // Add the field_ prefix to the column name
-        $selected_colname = 'field_selected_' . $colname;
-        $sort_colname = 'field_display_order_' . $colname;
+	// sort the display order
+	$s_selected_fields = _opendata_sort_display_order($s_selected_fields, 1);
 
-        // If the field is selected, build the view field
-        if ($s_fields[$selected_colname] == 1) {
-
-            $s_selected_fields[$colname] = array(
-                'id' => $colname,
-                'table' => $data_table_name,
-                'field' => $colname,
-                'case' => 1,
-                'label' => _opendata_formatter($colname, 'space'),
-                'exposed' => TRUE,
-                'expose' => array(
-                  'use_operator' => 0,
-                  'operator' => $colname . '_op',
-                  'identifier' => $colname,
-                  'label' => $colname,
-                  'optional' => 1,
-                  'remember' => 0,   
-                ),
-            );
-
-            //
-            if ($s_fields[$sort_colname] != '' or $s_fields[$sort_colname] > 0) {
-                $s_selected_fields[$colname]['display_order'] = $s_fields[$sort_colname];
-            } else {
-                $s_selected_fields[$colname]['display_order'] = $temp_display_order;
-                $temp_display_order++;
-            }
-
-        }
-    }
-
-    // sort the display order
-    $s_selected_fields = _opendata_sort_display_order($s_selected_fields, 1);
-
-    #debug
-    #dpm($s_selected_fields);  
-
-    return $s_selected_fields;
+	return $s_selected_fields;
 }
 
 function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fields, $url, $table_key, $detail_title) {
@@ -727,13 +706,133 @@ function _opendata_get_tables() {
  *   Selected table name
  */
 function _opendata_get_tablename($tableid) {
+	//Get table name
+	$data_table_names = array();
+	$data_table_names = _opendata_get_tables();
+	$data_table_name = $data_table_names[$tableid];
+	
+	return $data_table_name;
+}
 
-    //Get table name
-    $data_table_names = array();
-    $data_table_names = _opendata_get_tables();
-    $data_table_name = $data_table_names[$tableid];
-    
-    return $data_table_name;
+function _opendata_build_desc_fields($more_info_url, $description) {
+  // instantiate an array to hold the final fields structure 
+  $desc_fields = array();
+
+	if ($more_info_url != '') {
+		$desc_fields['markup'] = array(
+			'label' => '',
+			'alter' => array(
+				'alter_text' => 0,
+				'text' => '',
+				'make_link' => 0,
+				'path' => '',
+				'link_class' => '',
+				'alt' => '',
+				'prefix' => '',
+				'suffix' => '',
+				'target' => '',
+				'help' => '',
+				'trim' => 0,
+				'nl2br' => 0,
+				'max_length' => '',
+				'word_boundary' => 1,
+				'ellipsis' => 1,
+				'html' => 0,
+				'strip_tags' => 0,
+			),
+			'empty' => '',
+			'hide_empty' => 0,
+			'empty_zero' => 0,
+			'value' => '<div id="opendata-more-info"><a href="' . $more_info_url . '">More Information</a></div>',
+			'format' => '2',
+			'exclude' => 0,
+			'id' => 'markup',
+			'table' => 'customfield',
+			'field' => 'markup',
+			'override' => array(
+				'button' => 'Use default',
+			),
+			'relationship' => 'none',
+		);
+	}
+
+	$desc_fields['markup_1'] = array(
+		'label' => '',
+		'alter' => array(
+			'alter_text' => 0,
+			'text' => '',
+			'make_link' => 0,
+			'path' => '',
+			'link_class' => '',
+			'alt' => '',
+			'prefix' => '',
+			'suffix' => '',
+			'target' => '',
+			'help' => '',
+			'trim' => 0,
+			'nl2br' => 0,
+			'max_length' => '',
+			'word_boundary' => 1,
+			'ellipsis' => 1,
+			'html' => 0,
+			'strip_tags' => 0,
+		),
+		'empty' => '',
+		'hide_empty' => 0,
+		'empty_zero' => 0,
+		'value' => '<div class="expandable">' . $description . '</div>',
+		'format' => '2',
+		'exclude' => 0,
+		'id' => 'markup_1',
+		'table' => 'customfield',
+		'field' => 'markup',
+		'override' => array(
+			'button' => 'Use default',
+		),
+		'relationship' => 'none',
+	);
+
+	$desc_fields['markup_2'] = array(
+		'label' => '',
+		'alter' => array(
+			'alter_text' => 0,
+			'text' => '',
+			'make_link' => 0,
+			'path' => '',
+			'link_class' => '',
+			'alt' => '',
+			'prefix' => '',
+			'suffix' => '',
+			'target' => '',
+			'help' => '',
+			'trim' => 0,
+			'nl2br' => 0,
+			'max_length' => '',
+			'word_boundary' => 1,
+			'ellipsis' => 1,
+			'html' => 0,
+			'strip_tags' => 0,
+		),
+		'empty' => '',
+		'hide_empty' => 0,
+		'empty_zero' => 0,
+		'value' => '<script type="text/javascript">
+jQuery(\'.expandable\').moreLess();
+</script>
+<br />
+<div style="margin-top: 0.5em"><a href="#table">Skip to table</a></div>',
+		'format' => '2',
+		'exclude' => 0,
+		'id' => 'markup_2',
+		'table' => 'customfield',
+		'field' => 'markup',
+		'override' => array(
+			'button' => 'Use default',
+		),
+		'relationship' => 'none',
+	);
+
+  return $desc_fields;
 }
 
 /**
@@ -769,3 +868,4 @@ function _opendata_formatter($val, $type) {
 
   return $val;
 }
+
