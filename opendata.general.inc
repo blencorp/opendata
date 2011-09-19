@@ -178,6 +178,7 @@ function opendata_summary($form_state) {
     '#type' => 'checkbox',
     '#title' => t('CSV Download'),
     '#description' => t('Please select to allow visitors to download raw CSV file.'),
+		'#default_value' => variable_get('true', 1),
   );
 
   // append the columns based on the selected data table

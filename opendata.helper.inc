@@ -82,6 +82,16 @@ function _opendata_get_title_field($colnames, $fields) {
 	}
 
 	//TODO: if no title field is selected, force the second field to be the title field.
+	if ($is_titled == false) {
+		$counter = 0;
+		foreach ($colnames as $colname) {    
+			if ($counter > 2) {
+				$tfield = $colname;
+				break;
+			}
+			$counter++;
+		}
+	}
 
 	//dbm($colnames);
 
@@ -305,7 +315,6 @@ function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fie
                 $s_selected_fields[$colname]['display_order'] = $temp_display_order;
                 $temp_display_order++;
             }
-            
         }
     }
     
@@ -568,7 +577,7 @@ function _opendata_build_summary_listing($tableid) {
     $form['summary_fields'][$exportable] = array(
 			'#type' => 'checkbox', 
 			'#label' => 'exportable',
-			'#default_value' => variable_get('exportable', 1),
+			//'#default_value' => variable_get('exportable', 1),
 		);
   }
   
