@@ -727,6 +727,63 @@ function _opendata_get_fields($table_name) {
 }
 
 /**
+ * A helper function for getting the primary key of a table
+ * 
+ * @param
+ *   Table name
+ *
+ * @return 
+ *   primary key 
+ */
+function _opendata_get_primary_key($tableid) {
+	$tablename = _opendata_get_tablename($tableid);
+  $inspect = schema_invoke('inspect');
+  $schema = $inspect[$tablename];
+
+  if (!$schema) {
+    drupal_set_message(t('Could not analyze !tablename',
+      array('!tablename' => $tablename)), 'error');
+  }
+  else {
+    if (isset($schema['primary key'])) {
+      $pks = $schema['primary key'];
+    }
+    else {
+      $pks = array();
+    }
+    $weight = 0;
+    // Go through the existing fields in the table, adding and updating as necessary
+    if (!is_array($schema)) {
+      drupal_set_message(t('No fields found for !tablename',
+        array('!tablename' => $tablename)));
+    }
+	}
+
+	/*
+	$pk = NULL;
+	$colnames = array();
+	$sql = "SELECT colname, primarykey
+	        FROM {tw_columns}
+	        WHERE ignorecol=0 AND twtid=%d
+	        ORDER BY weight";
+	$colresult = db_query($sql, $table_name);
+	          
+	while ($colrow = db_fetch_object($colresult)) {
+	  $colnames[] = $colrow->colname;
+	  if ($colrow->primarykey) {
+	    $pk = $colrow->colname;
+	  }
+	}
+
+	#debug
+	#dpm($colnames);
+	
+	return $colnames;
+	*/
+	return $pks;
+}
+
+/**
  * A helper function for getting the table names
  * 
  * @param
@@ -824,7 +881,7 @@ function _opendata_build_desc_fields($more_info_url, $description) {
 			'empty' => '',
 			'hide_empty' => 0,
 			'empty_zero' => 0,
-			'value' => '<div id="opendata-more-info"><a href="' . $more_info_url . '">More Information</a></div>',
+			'value' => '<div id="opendata-more-info"><a href="' . $more_info_url . '"><div id="opendata-more-info-link"></div></a></div>',
 			'format' => '2',
 			'exclude' => 0,
 			'id' => 'markup',

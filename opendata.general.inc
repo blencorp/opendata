@@ -163,8 +163,11 @@ function opendata_summary($form_state) {
   //Other summary related fields
   $form['summary']['table_key'] = array(
     '#type' => 'select',
+    //'#type' => 'textfield',
     '#title' => t('Table Key'),
-    '#options' => _opendata_get_fields($step_1['data_table']),
+    //'#options' => _opendata_get_fields($step_1['data_table']),
+    '#options' => _opendata_get_primary_key($step_1['data_table']),
+    //'#default_value' => _opendata_get_primary_key($step_1['data_table']),
     '#description' => t('Please choose the unique column'),
   );   
   $form['summary']['page_limit'] = array(

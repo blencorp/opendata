@@ -52,7 +52,8 @@ function opendata_create_display(&$view, $type, &$form_state) {
 	$detail_title = _opendata_formatter($detail_title_raw, 'space');
 
 	// set the detail perm url based on the selected table key field
-	$detail_url = $url . '/detail/[' . $table_key . ']/[' . $detail_title_raw . ']';
+	//$detail_url = $url . '/detail/[' . $table_key . ']/[' . $detail_title_raw . ']';
+	$detail_url = $url . '/detail/[' . $table_key . ']';
   
   //Get array of the summary fields
   $summary_fields = array();
