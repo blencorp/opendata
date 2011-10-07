@@ -704,26 +704,36 @@ function _opendata_build_detail_listing($tableid) {
  *   Column names 
  */
 function _opendata_get_fields($table_name) {
+	$twtid = _opendata_get_twtid($table_name);
+	//$twtid = '26';
+	$pk = NULL;
+	$colnames = array();
+	$sql = "SELECT colname, primarykey
+	        FROM {tw_columns}
+	        WHERE ignorecol=0 AND twtid = '%d' 
+	        ORDER BY weight";
+	$colresult = db_query($sql, $twtid);
+	          
+	while ($colrow = db_fetch_object($colresult)) {
+	  $colnames[] = $colrow->colname;
+	  if ($colrow->primarykey) {
+	    $pk = $colrow->colname;
+	  }
+	}
+	
+	#debug
+	//dpm($colnames);
+	
+	return $colnames;
+}
 
-    $pk = NULL;
-    $colnames = array();
-    $sql = "SELECT colname, primarykey
-            FROM {tw_columns}
-            WHERE ignorecol=0 AND twtid=%d
-            ORDER BY weight";
-    $colresult = db_query($sql, $table_name);
-              
-    while ($colrow = db_fetch_object($colresult)) {
-      $colnames[] = $colrow->colname;
-      if ($colrow->primarykey) {
-        $pk = $colrow->colname;
-      }
-    }
-    
-    #debug
-    #dpm($colnames);
-    
-    return $colnames;
+function _opendata_get_twtid($table_name) {
+	$sql = "SELECT twtid 
+	        FROM {tw_tables}
+	        WHERE tablename = '%s'";
+	$twtid = db_result(db_query($sql, $table_name));
+	          
+	return $twtid;
 }
 
 /**
@@ -735,8 +745,9 @@ function _opendata_get_fields($table_name) {
  * @return 
  *   primary key 
  */
-function _opendata_get_primary_key($tableid) {
-	$tablename = _opendata_get_tablename($tableid);
+function _opendata_get_primary_key($tablename) {
+	/*
+	//$tablename = _opendata_get_tablename($tableid);
   $inspect = schema_invoke('inspect');
   $schema = $inspect[$tablename];
 
@@ -758,15 +769,16 @@ function _opendata_get_primary_key($tableid) {
         array('!tablename' => $tablename)));
     }
 	}
+	*/
 
-	/*
+	$twtid = _opendata_get_twtid($tablename);
 	$pk = NULL;
 	$colnames = array();
 	$sql = "SELECT colname, primarykey
 	        FROM {tw_columns}
-	        WHERE ignorecol=0 AND twtid=%d
+	        WHERE ignorecol=0 AND twtid = '%d' 
 	        ORDER BY weight";
-	$colresult = db_query($sql, $table_name);
+	$colresult = db_query($sql, $twtid);
 	          
 	while ($colrow = db_fetch_object($colresult)) {
 	  $colnames[] = $colrow->colname;
@@ -774,13 +786,16 @@ function _opendata_get_primary_key($tableid) {
 	    $pk = $colrow->colname;
 	  }
 	}
-
-	#debug
-	#dpm($colnames);
-	
+	//dpm($colnames);
 	return $colnames;
-	*/
-	return $pks;
+}
+
+// TODO: get tablename from tw_tables by twtid 
+function _opendata_get_tablename_by_twtid($twtid) {
+}
+
+function _opendata_exists_in_tw($tablename) {
+	return false;
 }
 
 /**
@@ -792,46 +807,32 @@ function _opendata_get_primary_key($tableid) {
  *   Array of table names
  */
 function _opendata_get_tables() {
-    
-    //Set array to hold the table names
-    $tablenames = array();
+	$tablenames = array();
+	
+	/*
+	// Go through each import table and create default views for them
+	// Skip any without a primary key
+	 $sql = "SELECT tt.twtid,tt.tablename,tt.dbconnection,tt.view_name,COUNT(*) AS cnt
+	      FROM {tw_tables} tt
+	      INNER JOIN {tw_columns} tc ON tt.twtid=tc.twtid
+	      WHERE tt.provide_view=1 AND tc.primarykey=1
+	      GROUP BY tt.twtid,tt.tablename,tt.view_name,tt.dbconnection";
+	*/
+	$sql = "SHOW TABLES LIKE 'ed_%'";
+	$result = db_query($sql);
+	
+	$options = array();
+	while ($row = db_fetch_array($result)) {
+		foreach ($row as $tablename) {
+			$unprefixed = schema_unprefix_table($tablename);
 
-    // Go through each import table and create default views for them
-    // Skip any without a primary key
-     $sql = "SELECT tt.twtid,tt.tablename,tt.dbconnection,tt.view_name,COUNT(*) AS cnt
-          FROM {tw_tables} tt
-          INNER JOIN {tw_columns} tc ON tt.twtid=tc.twtid
-          WHERE tt.provide_view=1 AND tc.primarykey=1
-          GROUP BY tt.twtid,tt.tablename,tt.view_name,tt.dbconnection";
-    $tblresult = db_query($sql);
-
-    while ($tblrow = db_fetch_object($tblresult)) {
-        // For a default view to be possible, the table must have a single primary key field
-        if ($tblrow->cnt != 1) {
-          continue;
-        }
-        
-        $twtid = $tblrow->twtid;
-        $tablename = $tblrow->tablename;
-        $view_name = $tblrow->view_name;
-        $dbconnection = $tblrow->dbconnection;
-        if ($dbconnection == 'default') {
-          $rawtablename = schema_unprefix_table($tablename);
-          $cleantablename = $rawtablename;
-        }
-        else {
-          $truedbname = tw_get_dbinfo($dbconnection, 'name');
-          $rawtablename = tw_qualified_tablename($dbconnection, $tablename);
-          $cleantablename = $truedbname . '_' . $tablename;
-        }
-        
-        $tablenames[$twtid] = $tablename;
-    }
-    
-    #Debug
-    #dpm($tablenames);
-    
-    return $tablenames;
+			// skip if tw is already managing 
+			$options[$unprefixed] = $unprefixed;
+		}
+	}
+	
+	#dpm($options);
+	return $options;
 }
 
 /**
@@ -844,12 +845,15 @@ function _opendata_get_tables() {
  *   Selected table name
  */
 function _opendata_get_tablename($tableid) {
-	//Get table name
+	/*
 	$data_table_names = array();
 	$data_table_names = _opendata_get_tables();
 	$data_table_name = $data_table_names[$tableid];
 	
 	return $data_table_name;
+	*/
+	$tablename = $tableid;
+	return $tablename;
 }
 
 function _opendata_build_desc_fields($more_info_url, $description) {

@@ -138,14 +138,25 @@ function opendata_general($form_state) {
  *
  */
 function opendata_summary($form_state) {
-    
-  //Summary Page
   $step_1 = array();
+	//Get title of the dataset
+  $step_1['title'] = $form_state['storage']['general_values']['details']['title']; 
+	//Get dataset table  
+  $step_1['data_table'] = $form_state['storage']['general_values']['details']['data_table']; 
+	//Get dataset table  
+  $step_1['fiscal_year'] = $form_state['storage']['general_values']['details']['fiscal_year'];
   
-  $step_1['title'] = $form_state['storage']['general_values']['details']['title'];              //Get title of the dataset
-  $step_1['data_table'] = $form_state['storage']['general_values']['details']['data_table'];    //Get dataset table  
-  $step_1['fiscal_year'] = $form_state['storage']['general_values']['details']['fiscal_year'];    //Get dataset table  
-  
+	// it is at this stage that we need to adopt the table in question 
+	// into table wizard, if it is not already adopted, that is.
+	/*
+	$tablename = $step_1['data_table'];
+	$is_adopted = _opendata_exists_in_tw($tablename);
+	if (!$is_adopted) {
+		tw_add_tables($step_1['data_table']);
+	}
+	*/
+	tw_add_tables($step_1['data_table']);
+    
   //Show grant title, data table, fiscal year -- for reference
   $form['r_grant_title'] = array(
     '#type' => 'item',
@@ -153,7 +164,8 @@ function opendata_summary($form_state) {
   );
   $form['r_data_table'] = array(
     '#type' => 'item',
-    '#title' => t('Data Table - ' . _opendata_get_tablename($step_1['data_table'])),
+    //'#title' => t('Data Table - ' . _opendata_get_tablename($step_1['data_table'])),
+    '#title' => t('Data Table - ' . $step_1['data_table']),
   );
   $form['r_fiscal_year'] = array(
     '#type' => 'item',
