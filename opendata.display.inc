@@ -23,7 +23,8 @@ function opendata_create_display(&$view, $type, &$form_state) {
   $desc_extended = _opendata_formatter($form_state['storage']['general_values']['details']['desc_extended'], 'html');
   $more_info_url = $form_state['storage']['general_values']['details']['more_info_url'];
 
-  $unique_name = substr('od_' . $office . '_' . $fiscal_year . '_' . _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'underscore'), 0, 30);
+  $underscored_title = _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'underscore');
+  $unique_name = substr('od_' . $office . '_' . $fiscal_year . '_' . $underscored_title, 0, 30);
 
   $url = 'grants/' . $office . '/' . $fiscal_year . '/' . $title;
 
@@ -45,7 +46,8 @@ function opendata_create_display(&$view, $type, &$form_state) {
   $description_field = $colnames[$map_sub_title];
 
   // get the name of the selected table key field
-  $table_key = $colnames[$table_key];
+	// we no longer need to get the name, the var already contains the name
+  //$table_key = $colnames[$table_key];
 
   // get an array of the detail page fields
   $detail_fields = array();
@@ -54,8 +56,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 	$detail_title = _opendata_formatter($detail_title_raw, 'space');
 
 	// set the detail perm url based on the selected table key field
-	//$detail_url = $url . '/detail/[' . $table_key . ']/[' . $detail_title_raw . ']';
-	$detail_url = $url . '/detail/[' . $table_key . ']';
+	$detail_url = $url . '/detail/[' . $table_key . '_arg' . ']/[' . $detail_title_raw . '_arg' . ']';
   
   //Get array of the summary fields
   $summary_fields = array();
@@ -106,9 +107,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$desc_fields = _opendata_build_desc_fields($more_info_url, $desc_brief, $desc_extended); 
 		$handler->override_option('fields', $desc_fields);
     $handler->override_option('filters', array());
-		$handler->override_option('header', '<?php
-		print \'<script type="text/javascript" src="\'. base_path() . path_to_theme() . \'/MoreLess/javascript/jquery.moreless.1.0.js"></script>\';
-		?>');
+		$handler->override_option('header', '');
 		$handler->override_option('header_format', '3');
 		$handler->override_option('items_per_page', 1);
 		$handler->override_option('use_pager', '0');
@@ -121,7 +120,28 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$url = 'grants/' . $office . '/' . $fiscal_year . '/' . $title;
 		$handler = $view->new_display('page', $full_title . ' summary listing page', 'page_1');
 		$handler->override_option('title', $full_title);
+		$handler->override_option('footer', '<script type="text/javascript">
+		var lnk = \'<span class="breadcrumb-link"><a href="<?php global $base_path; print $base_path; ?>">data.ed.gov</a></span>\';
+		lnk += \'<span class="breadcrumb-link"><strong><?php print arg(3); ?></strong></span>\';
+		$(\'#main .breadcrumb\').html(lnk);
+		</script>');
+		$handler->override_option('footer_format', '3');
+		$handler->override_option('footer_empty', 0);
 		$handler->override_option('path', $url);
+		$handler->override_option('menu', array(
+			'type' => 'none',
+			'title' => '',
+			'description' => '',
+			'weight' => 0,
+			'name' => 'navigation',
+		));
+		$handler->override_option('tab_options', array(
+			'type' => 'none',
+			'title' => '',
+			'description' => '',
+			'weight' => 0,
+			'name' => 'navigation',
+		));
 	} elseif ($type == 'openlayers_data_summary') {
 		$handler = $view->new_display('openlayers', $full_title . ' summary map data', 'openlayers_1');
 		$map_fields = array();
@@ -256,30 +276,37 @@ function opendata_create_display(&$view, $type, &$form_state) {
 
     $handler->override_option('arguments', array(
       $table_key => array(
-				'title' => '%2',
-        'id' => $table_key,
-        'table' => $data_table_name,
-        'field' => $table_key,
-        'relationship' => 'none',
-        //'label' => _opendata_formatter($table_key, 'space'),
-      ),
-      $detail_title_raw => array(
-				/*
-				'default_action' => 'empty',
+				'default_action' => 'not found',
 				'style_plugin' => 'default_summary',
 				'style_options' => array(),
 				'wildcard' => 'all',
 				'wildcard_substitution' => 'All',
-				*/
+				'title' => '',
+				'breadcrumb' => '',
+				'default_argument_type' => 'fixed',
+				'default_argument' => '',
+				'validate_type' => 'none',
+				'validate_fail' => 'not found',
+				'break_phrase' => 0,
+				'not' => 0,
+        'id' => $table_key,
+        'table' => $data_table_name,
+        'field' => $table_key,
+        'relationship' => 'none',
+      ),
+      $detail_title_raw => array(
+				'default_action' => 'default',
+				'style_plugin' => 'default_summary',
+				'style_options' => array(),
+				'wildcard' => 'all',
+				'wildcard_substitution' => $full_title,
 				'title' => '%2',
-				/*
 				'breadcrumb' => '',
 				'default_argument_type' => 'fixed',
 				'default_argument' => '',
 				'validate_type' => 'none',
 				'validate_fail' => 'not found',
 				'glossary' => 0,
-				*/
 				'limit' => '0',
 				'case' => 'none',
 				'path_case' => 'none',
@@ -287,24 +314,38 @@ function opendata_create_display(&$view, $type, &$form_state) {
         'id' => $detail_title_raw,
         'table' => $data_table_name,
         'field' => $detail_title_raw,
-        //'label' => _opendata_formatter($detail_title_raw, 'space'),
-        //'relationship' => 'none',
+        'relationship' => 'none',
+				'default_argument_fixed' => 'all',
       ),
     ));
-		/*
-		if ($detail_title != '') {
-			$handler->override_option('title', $detail_title);
-		} else {
-			$handler->override_option('title', $full_title);
-		}
-		*/
-		//$handler->override_option('title', $detail_title_raw);
-    $handler->override_option('filters', array());
+		$handler->override_option('filters', array());
 		$handler->override_option('title', $full_title);
+		$handler->override_option('footer', '<script type="text/javascript">
+		var lnk = \'<span class="breadcrumb-link"><a href="<?php global $base_path; print $base_path; ?>">data.ed.gov</a></span>\';
+		lnk += \'<span class="breadcrumb-link"><a href="<?php print $base_path . arg(0) . \'/\' . arg(1) . \'/\' . arg(2) . \'/\' . arg(3); ?>"><?php print arg(3); ?></a></span>\';
+		lnk += \'<span class="breadcrumb-link"><strong><?php print arg(6); ?></strong></span>\';
+		$(\'#main .breadcrumb\').html(lnk);
+		</script>');
+		$handler->override_option('footer_format', '3');
+		$handler->override_option('footer_empty', 0);
+		$handler->override_option('style_plugin', 'default');
+		$handler->override_option('style_options', NULL);
+		$handler->override_option('row_plugin', 'fields');
     $handler->override_option('path', $url . '/detail/%');
-    $handler->override_option('style_plugin', 'default');
-    $handler->override_option('style_options', NULL);
-    $handler->override_option('row_plugin', 'fields');
+		$handler->override_option('menu', array(
+			'type' => 'none',
+			'title' => '',
+			'description' => '',
+			'weight' => 0,
+			'name' => 'navigation',
+		));
+		$handler->override_option('tab_options', array(
+			'type' => 'none',
+			'title' => '',
+			'description' => '',
+			'weight' => 0,
+			'name' => 'navigation',
+		));
 	} 
 	return $form;
 }

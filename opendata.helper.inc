@@ -81,7 +81,8 @@ function _opendata_get_title_field($colnames, $fields) {
 		}
 	}
 
-	//TODO: if no title field is selected, force the second field to be the title field.
+	// if a title field is not defined, set the first selected field as title 
+	// field
 	if ($is_titled == false) {
 		$counter = 0;
 		foreach ($colnames as $colname) {    
@@ -248,40 +249,34 @@ function _opendata_build_view_filter_fields($data_table_name, $colnames, $s_fiel
 
 function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fields, $url, $table_key, $detail_title) {
     
-    #debug
-    #dpm($s_fields);
-    
     // Holds the built out views fields
     $s_selected_fields = array();
     
     // IMPORTANT!
     // set the table key as the first field
     // to pass the right value to the detail page
-    $s_selected_fields[$table_key] = array(
-        'id' => $table_key,
+    $s_selected_fields[$table_key . '_arg'] = array(
+        'label' => $table_key . '_arg',
+        'id' => $table_key . '_arg',
         'table' => $data_table_name,
         'field' => $table_key,
-        'label' => _opendata_formatter($table_key, 'space'),
         'relationship' => 'none',
         'separator' => '',
         'exclude' => 1,
     );
-    $s_selected_fields[$table_key]['display_order'] = 0;
+    $s_selected_fields[$table_key . '_arg']['display_order'] = '-2';
 
 		// set the detail page link title as the second field
-    $s_selected_fields[$detail_title] = array(
-        'label' => _opendata_formatter($detail_title, 'space'),
-        'exclude' => 1,
+    $s_selected_fields[$detail_title . '_arg'] = array(
+        'label' => $detail_title . '_arg',
         'id' => $detail_title,
         'table' => $data_table_name,
         'field' => $detail_title,
         'relationship' => 'none',
+        'separator' => '',
+        'exclude' => 1,
     );
-    $s_selected_fields[$detail_title]['display_order'] = 1;
-    
-
-    // find out the table key column name
-    $table_key_column = $colnames[$table_key];
+    $s_selected_fields[$detail_title . '_arg']['display_order'] = '-1';
     
     // a temporary display order field to hold, if the
     // user does not enter any display order
@@ -321,8 +316,7 @@ function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fie
     // sort the display order
     $s_selected_fields = _opendata_sort_display_order($s_selected_fields, 1);
 
-    #debug
-    #dpm($s_selected_fields);  
+    dpm($s_selected_fields);  
     
     return $s_selected_fields;
 }
@@ -746,31 +740,6 @@ function _opendata_get_twtid($table_name) {
  *   primary key 
  */
 function _opendata_get_primary_key($tablename) {
-	/*
-	//$tablename = _opendata_get_tablename($tableid);
-  $inspect = schema_invoke('inspect');
-  $schema = $inspect[$tablename];
-
-  if (!$schema) {
-    drupal_set_message(t('Could not analyze !tablename',
-      array('!tablename' => $tablename)), 'error');
-  }
-  else {
-    if (isset($schema['primary key'])) {
-      $pks = $schema['primary key'];
-    }
-    else {
-      $pks = array();
-    }
-    $weight = 0;
-    // Go through the existing fields in the table, adding and updating as necessary
-    if (!is_array($schema)) {
-      drupal_set_message(t('No fields found for !tablename',
-        array('!tablename' => $tablename)));
-    }
-	}
-	*/
-
 	$twtid = _opendata_get_twtid($tablename);
 	$pk = NULL;
 	$colnames = array();
@@ -781,9 +750,12 @@ function _opendata_get_primary_key($tablename) {
 	$colresult = db_query($sql, $twtid);
 	          
 	while ($colrow = db_fetch_object($colresult)) {
-	  $colnames[] = $colrow->colname;
+	  //$colnames[] = $colrow->colname;
 	  if ($colrow->primarykey) {
-	    $pk = $colrow->colname;
+	    //$pk = $colrow->colname;
+			// we only want to add the primary key field
+			//$colnames[] = $colrow->colname;
+			$colnames[$colrow->colname] = $colrow->colname;
 	  }
 	}
 	//dpm($colnames);
