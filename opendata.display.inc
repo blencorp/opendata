@@ -18,7 +18,9 @@ function opendata_create_display(&$view, $type, &$form_state) {
   $fiscal_year = $form_state['storage']['general_values']['details']['fiscal_year'];
   $full_title =  $form_state['storage']['general_values']['details']['title'];
   $title =  _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'hyphen');
-  $description = _opendata_formatter($form_state['storage']['general_values']['details']['description'], 'html');
+  //$description = _opendata_formatter($form_state['storage']['general_values']['details']['description'], 'html');
+  $desc_brief = _opendata_formatter($form_state['storage']['general_values']['details']['desc_brief'], 'html');
+  $desc_extended = _opendata_formatter($form_state['storage']['general_values']['details']['desc_extended'], 'html');
   $more_info_url = $form_state['storage']['general_values']['details']['more_info_url'];
 
   $unique_name = substr('od_' . $office . '_' . $fiscal_year . '_' . _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'underscore'), 0, 30);
@@ -101,7 +103,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$handler->override_option('displays', array());
 	} elseif ($type == 'desc_block') {
 		$handler = $view->new_display('block', $title . ' description block', 'block_1');
-		$desc_fields = _opendata_build_desc_fields($more_info_url, $description); 
+		$desc_fields = _opendata_build_desc_fields($more_info_url, $desc_brief, $desc_extended); 
 		$handler->override_option('fields', $desc_fields);
     $handler->override_option('filters', array());
 		$handler->override_option('header', '<?php

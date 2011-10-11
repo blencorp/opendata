@@ -794,8 +794,40 @@ function _opendata_get_primary_key($tablename) {
 function _opendata_get_tablename_by_twtid($twtid) {
 }
 
+// we only want to adopt tables in tw if it is not 
+// already adopted. 
+// this function is used by opendata_summary
 function _opendata_exists_in_tw($tablename) {
-	return false;
+	$sql = "SELECT twtid 
+	        FROM {tw_tables}
+	        WHERE tablename = '%s'";
+	$result = db_result(db_query($sql, $tablename));
+
+	//dpm($result);
+	if ($result) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+// for each table name, we want to check if there is a primary key. 
+// this function is used by _opendata_get_tables()
+function _opendata_has_pk($tablename) {
+  $inspect = schema_invoke('inspect');
+  $schema = $inspect[$tablename];
+
+  if (!$schema) {
+    drupal_set_message(t('Could not analyze !tablename',
+      array('!tablename' => $tablename)), 'error');
+		return false;
+  } else {
+    if (isset($schema['primary key'])) {
+			return true;
+    } else {
+			return false;
+		}
+	}
 }
 
 /**
@@ -808,16 +840,6 @@ function _opendata_exists_in_tw($tablename) {
  */
 function _opendata_get_tables() {
 	$tablenames = array();
-	
-	/*
-	// Go through each import table and create default views for them
-	// Skip any without a primary key
-	 $sql = "SELECT tt.twtid,tt.tablename,tt.dbconnection,tt.view_name,COUNT(*) AS cnt
-	      FROM {tw_tables} tt
-	      INNER JOIN {tw_columns} tc ON tt.twtid=tc.twtid
-	      WHERE tt.provide_view=1 AND tc.primarykey=1
-	      GROUP BY tt.twtid,tt.tablename,tt.view_name,tt.dbconnection";
-	*/
 	$sql = "SHOW TABLES LIKE 'ed_%'";
 	$result = db_query($sql);
 	
@@ -826,12 +848,11 @@ function _opendata_get_tables() {
 		foreach ($row as $tablename) {
 			$unprefixed = schema_unprefix_table($tablename);
 
-			// skip if tw is already managing 
-			$options[$unprefixed] = $unprefixed;
+			if (_opendata_has_pk($unprefixed)) {
+				$options[$unprefixed] = $unprefixed;
+			}
 		}
 	}
-	
-	#dpm($options);
 	return $options;
 }
 
@@ -856,7 +877,7 @@ function _opendata_get_tablename($tableid) {
 	return $tablename;
 }
 
-function _opendata_build_desc_fields($more_info_url, $description) {
+function _opendata_build_desc_fields($more_info_url, $desc_brief, $desc_extended) {
   // instantiate an array to hold the final fields structure 
   $desc_fields = array();
 
@@ -912,7 +933,7 @@ function _opendata_build_desc_fields($more_info_url, $description) {
 			'target' => '',
 			'help' => '',
 			'trim' => 0,
-			'nl2br' => 0,
+			'nl2br' => 1,
 			'max_length' => '',
 			'word_boundary' => 1,
 			'ellipsis' => 1,
@@ -922,7 +943,7 @@ function _opendata_build_desc_fields($more_info_url, $description) {
 		'empty' => '',
 		'hide_empty' => 0,
 		'empty_zero' => 0,
-		'value' => '<div class="expandable">' . $description . '</div>',
+		'value' => '<div id="desc-brief" style="padding-top: 1em;">' . $desc_brief . '</div>',
 		'format' => '2',
 		'exclude' => 0,
 		'id' => 'markup_1',
@@ -934,7 +955,45 @@ function _opendata_build_desc_fields($more_info_url, $description) {
 		'relationship' => 'none',
 	);
 
-	$desc_fields['markup_2'] = array(
+	if ($desc_extended != '' && $desc_extended != null) {
+		$desc_fields['markup_2'] = array(
+			'label' => '',
+			'alter' => array(
+				'alter_text' => 0,
+				'text' => '',
+				'make_link' => 0,
+				'path' => '',
+				'link_class' => '',
+				'alt' => '',
+				'prefix' => '',
+				'suffix' => '',
+				'target' => '',
+				'help' => '',
+				'trim' => 0,
+				'nl2br' => 1,
+				'max_length' => '',
+				'word_boundary' => 1,
+				'ellipsis' => 1,
+				'html' => 0,
+				'strip_tags' => 0,
+			),
+			'empty' => '',
+			'hide_empty' => 0,
+			'empty_zero' => 0,
+			'value' => '<div id="desc-extended" style="margin-top: 10px;">' . $desc_extended . '</div><button id="desc-button">More</button>',
+			'format' => '2',
+			'exclude' => 0,
+			'id' => 'markup_2',
+			'table' => 'customfield',
+			'field' => 'markup',
+			'override' => array(
+				'button' => 'Use default',
+			),
+			'relationship' => 'none',
+		);
+	}
+
+	$desc_fields['phpcode'] = array(
 		'label' => '',
 		'alter' => array(
 			'alter_text' => 0,
@@ -958,14 +1017,58 @@ function _opendata_build_desc_fields($more_info_url, $description) {
 		'empty' => '',
 		'hide_empty' => 0,
 		'empty_zero' => 0,
-		'value' => '<script type="text/javascript">
-jQuery(\'.expandable\').moreLess();
-</script>
-<br />
-<div style="margin-top: 0.5em"><a href="#table">Skip to table</a></div>',
+    'value' => '<script type="text/javascript">
+$(document).ready(function() {
+  $(\'#desc-extended\').hide();
+  $(\'#desc-button\').click(function() {
+    $(\'#desc-extended\').toggle(300, function() {
+      if ($(\'#desc-button\').text() == \'Less\') {
+        $(\'#desc-button\').text(\'More\');
+      } else {
+        $(\'#desc-button\').text(\'Less\');
+      }
+    });
+  });
+});
+</script>',
+		'exclude' => 0,
+		'id' => 'phpcode',
+		'table' => 'customfield',
+		'field' => 'phpcode',
+		'override' => array(
+			'button' => 'Use default',
+		),
+		'relationship' => 'none',
+	);
+
+	$desc_fields['markup_3'] = array(
+		'label' => '',
+		'alter' => array(
+			'alter_text' => 0,
+			'text' => '',
+			'make_link' => 0,
+			'path' => '',
+			'link_class' => '',
+			'alt' => '',
+			'prefix' => '',
+			'suffix' => '',
+			'target' => '',
+			'help' => '',
+			'trim' => 0,
+			'nl2br' => 1,
+			'max_length' => '',
+			'word_boundary' => 1,
+			'ellipsis' => 1,
+			'html' => 0,
+			'strip_tags' => 0,
+		),
+		'empty' => '',
+		'hide_empty' => 0,
+		'empty_zero' => 0,
+		'value' => '<div style="margin-top: 0.5em"><a href="#table">Skip to table</a></div>',
 		'format' => '2',
 		'exclude' => 0,
-		'id' => 'markup_2',
+		'id' => 'markup_3',
 		'table' => 'customfield',
 		'field' => 'markup',
 		'override' => array(

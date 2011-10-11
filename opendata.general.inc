@@ -88,10 +88,17 @@ function opendata_general($form_state) {
     '#title' => t('Title'),
     '#description' => t('Please enter the Title'),
   );
-  $form['details']['description'] = array(
+  $form['details']['desc_brief'] = array(
     '#type' => 'textarea',
-    '#title' => t('Description'),
-    '#description' => t('Please enter the description of the dataset'),
+    '#title' => t('Brief Description'),
+    '#description' => t('Please enter a brief description of the dataset'),
+		'#rows' => 3,
+  );
+  $form['details']['desc_extended'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Extended Description'),
+    '#description' => t('Please full description of the dataset'),
+		'#rows' => 4,
   );
   $form['details']['more_info_url'] = array(
     '#type' => 'textfield',
@@ -148,14 +155,12 @@ function opendata_summary($form_state) {
   
 	// it is at this stage that we need to adopt the table in question 
 	// into table wizard, if it is not already adopted, that is.
-	/*
 	$tablename = $step_1['data_table'];
 	$is_adopted = _opendata_exists_in_tw($tablename);
 	if (!$is_adopted) {
 		tw_add_tables($step_1['data_table']);
 	}
-	*/
-	tw_add_tables($step_1['data_table']);
+	//tw_add_tables($step_1['data_table']);
     
   //Show grant title, data table, fiscal year -- for reference
   $form['r_grant_title'] = array(
@@ -395,7 +400,9 @@ function opendata_general_views(&$form_state) {
 	$fiscal_year = $form_state['storage']['general_values']['details']['fiscal_year'];
 	$full_title =  $form_state['storage']['general_values']['details']['title'];
 	$title =  _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'hyphen');
-	$description = _opendata_formatter($form_state['storage']['general_values']['details']['description'], 'html');
+	//$description = _opendata_formatter($form_state['storage']['general_values']['details']['description'], 'html');
+	$desc_brief = _opendata_formatter($form_state['storage']['general_values']['details']['desc_brief'], 'html');
+	$desc_extended = _opendata_formatter($form_state['storage']['general_values']['details']['desc_extended'], 'html');
 	
 	$unique_name = substr('od_' . $office . '_' . $fiscal_year . '_' . _opendata_formatter($form_state['storage']['general_values']['details']['title'], 'underscore'), 0, 30);
 	

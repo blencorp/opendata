@@ -14,3 +14,4 @@ dependencies[] = ctools
 dependencies[] = mapbox 
 dependencies[] = quicktabs
 dependencies[] = schema
+dependencies[] = tw  
