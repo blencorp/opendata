@@ -28,7 +28,7 @@ Summary page description block
 ===============================
 
 The description block has four fields of type "Customfield". 
-Customfield is provided by the views_customfield module. This a field that 
+Customfield is provided by the views_customfield module. This is a field that 
 allows a custom text of either plain, html, or php type. 
 
 The first field contains the html for the "More Information" button. 

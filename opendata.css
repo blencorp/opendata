@@ -16,7 +16,10 @@
 }
 .opendata-detail-fields .form-item {
   float: left;
+	/*
   width: 18.5%;
+	*/
+  width: 23.5%;
   height: 25px;
   border-bottom: 1px #efefef solid;
 }

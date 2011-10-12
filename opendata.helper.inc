@@ -65,6 +65,9 @@ function _opendata_build_csv_fields($data_table_name, $colnames, $summary_fields
 	return $csv_fields;
 }
 
+// this function used to get the title field that is selected from 
+// the detail page creation page's title radio button. 
+// it has since been deprecated and replaced by a drop down list
 function _opendata_get_title_field($colnames, $fields) {
 	$tfield = 'None';
 
@@ -99,32 +102,31 @@ function _opendata_get_title_field($colnames, $fields) {
 	return $tfield;
 }
 
-function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subtitle, $id_field, $detail_url, $detail_title) {
+function _opendata_build_map_fields($data_table_name, $lat, $lon, $title, $subtitle, $table_key, $detail_url, $detail_title) {
   // instantiate an array to hold the final fields structure 
   $map_fields = array();
 
-	// set the detail page link title as the second field
-	$map_fields[$detail_title] = array(
-		'id' => $detail_title,
-		'table' => $data_table_name,
-		'field' => $detail_title,
-		'label' => _opendata_formatter($detail_title, 'space'),
-		'relationship' => 'none',
-    'separator' => '',
-		'exclude' => 1,
-	);
-	$map_fields[$detail_title]['display_order'] = 1;
-	
-  $map_fields[$id_field] = array(
-    'id' => $id_field,
+  $map_fields[$table_key . '_arg'] = array(
+    'id' => $table_key . '_arg',
     'table' => $data_table_name,
-    'field' => $id_field,
-    'label' => _opendata_formatter($id_field, 'space'),
+    'field' => $table_key,
+    'label' => $table_key . '_arg',
     'relationship' => 'none',
     'separator' => '',
     'exclude' => 1,
   );
 
+	$map_fields[$detail_title . '_arg'] = array(
+		'id' => $detail_title . '_arg',
+		'table' => $data_table_name,
+		'field' => $detail_title,
+		'label' => $detail_title . '_arg',
+		'relationship' => 'none',
+    'separator' => '',
+		'exclude' => 1,
+	);
+	//$map_fields[$detail_title . '_arg']['display_order'] = 1;
+	
   $map_fields[$lat] = array(
     'id' => $lat,
     'table' => $data_table_name,
@@ -316,7 +318,7 @@ function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fie
     // sort the display order
     $s_selected_fields = _opendata_sort_display_order($s_selected_fields, 1);
 
-    dpm($s_selected_fields);  
+    //dpm($s_selected_fields);  
     
     return $s_selected_fields;
 }
@@ -592,32 +594,29 @@ function _opendata_build_summary_listing($tableid) {
  */
 function _opendata_build_detail_listing($tableid) {
     
-    //Debug
-    //dpm($tableid);
-    
-    $form['detail_fields'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Fields to Include on Detail Page'),
-        '#tree' => TRUE,
-        '#prefix' => '<div class="opendata-detail-fields">',
-        '#suffix' => '</div>',
-    );
+	$form['detail_fields'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Fields to Include on Detail Page'),
+		'#tree' => TRUE,
+		'#prefix' => '<div class="opendata-detail-fields">',
+		'#suffix' => '</div>',
+	);
 
-    // check all checkbox
-    $form['detail_fields']['checkall'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Check all fields'),
-      '#attributes' => array(
-        'onclick' => 'checkall("detail_fields_checkbox")',
-        'class' => 'checkall_checkbox',
-      ),
-      '#prefix' => '<div class="clear-fields">',
-      '#suffix' => '</div>',
-    );
+	// check all checkbox
+	$form['detail_fields']['checkall'] = array(
+		'#type' => 'checkbox',
+		'#title' => t('Check all fields'),
+		'#attributes' => array(
+			'onclick' => 'checkall("detail_fields_checkbox")',
+			'class' => 'checkall_checkbox',
+		),
+		'#prefix' => '<div class="clear-fields">',
+		'#suffix' => '</div>',
+	);
 
-    //Build the columns
-    $colnames = array();
-    $colnames = _opendata_get_fields($tableid);
+	//Build the columns
+	$colnames = array();
+	$colnames = _opendata_get_fields($tableid);
     
   $form['detail_fields']['lbl_display_fields'] = array(
     '#type' => 'item',
@@ -627,10 +626,12 @@ function _opendata_build_detail_listing($tableid) {
     '#type' => 'item',
     '#title' => t('Display Field'),
   );
+	/*
   $form['detail_fields']['lbl_title'] = array(
     '#type' => 'item',
     '#title' => t('Title'),
   );
+	*/
   $form['detail_fields']['lbl_line_break'] = array(
     '#type' => 'item',
     '#title' => t('Line Break'),
@@ -667,6 +668,7 @@ function _opendata_build_detail_listing($tableid) {
       $display_order = 'field_display_order_' . $colname;
       $form['detail_fields'][$display_order] = array('#type' => 'textfield', '#size' => 10);
       
+			/*
       // generate title option
       $detail_title = 'field_detail_title_' . $colname;
       $form['detail_fields'][$detail_title] = array(
@@ -674,6 +676,7 @@ function _opendata_build_detail_listing($tableid) {
         '#options' => array('0' => ''),
         //'#options' => array('0', '1'),
       );
+			*/
       
       // generate the line break
       $line_break = 'field_line_break_' . $colname;

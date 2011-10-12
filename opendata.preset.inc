@@ -15,12 +15,15 @@ function opendata_create_preset($preset_name, $preset_type) {
 	$pname = strtolower($preset_name);
 	$pname = str_replace(' ', '_', $pname);
 
+	// save the original pname for use with layers below
+	$layername = $pname;
+
 	if ($preset_type == 'detail') {
 		$pname = $pname . '_detail';
 	}
 
 	// get the map data array
-	$map = _opendata_build_map($pname, $preset_type);
+	$map = _opendata_build_map($pname, $preset_type, $layername);
 
 	$preset = new stdClass();
 	$preset->disabled = FALSE;
@@ -41,17 +44,24 @@ function opendata_create_preset($preset_name, $preset_type) {
 	}
 }
 
-function _opendata_build_map($pname, $preset_type) {
+function _opendata_build_map($pname, $preset_type, $layername) {
 	if ($preset_type == 'detail') {
 		$height = '200px';
-		$centerpoint = '-96.767578121148, 37.926867600188';
-		$zoom = '4';
+		//$centerpoint = '-96.767578121148, 37.926867600188';
+		$centerpoint = '-101.07421874601, 39.368279147837';
+		$zoom = '3';
 		$dot_style = 'dped_blue_large';
+		$point_zoom_level = '3';
+		$layer = $layername . '_openlayers_2';
+		$fullscreen = '';
 	} else {
 		$height = '500px';
 		$centerpoint = '-101.07421874601, 39.368279147837';
 		$zoom = '2';
 		$dot_style = 'dped_blue';
+		$point_zoom_level = '5';
+		$layer = $layername . '_openlayers_1';
+		$fullscreen = array();
 	}
 	$map = array(
 		'width' => 'auto',
@@ -72,6 +82,7 @@ function _opendata_build_map($pname, $preset_type) {
 		'behaviors' => array(
 			'openlayers_behavior_attribution' => array(),
 			'openlayers_behavior_popup' => array(),
+			//'openlayers_behavior_fullscreen' => $fullscreen,
 			'openlayers_behavior_fullscreen' => array(),
 			'openlayers_behavior_keyboarddefaults' => array(),
 			'openlayers_behavior_navigation' => array(
@@ -79,20 +90,20 @@ function _opendata_build_map($pname, $preset_type) {
 			),
 			'openlayers_behavior_panzoombar' => array(),
 			'openlayers_behavior_zoomtolayer' => array(
-				'zoomtolayer' => $pname . '_openlayers_1', 
-				'point_zoom_level' => '5',
+				'zoomtolayer' => $layer, 
+				'point_zoom_level' => $point_zoom_level,
 			),
 		),
 		'default_layer' => 'dped_browser_world_light_usa',
 		'layers' => array(
 			'dped_browser_world_light_usa' => 'dped_browser_world_light_usa',
-			$pname . '_openlayers_1' => $pname . '_openlayers_1',
+			$layer => $layer,
 		),
 		'layer_styles' => array(
-			$pname . '_openlayers_1' => 'dped_blue',
+			$layer => 'dped_blue',
 		),
 		'layer_activated' => array(
-			$pname . '_openlayers_1' => $pname . '_openlayers_1',
+			$layer => $layer,
 		),
 		'layer_switcher' => array(),
 		'projection' => '900913', 

@@ -52,7 +52,9 @@ function opendata_create_display(&$view, $type, &$form_state) {
   // get an array of the detail page fields
   $detail_fields = array();
   $detail_fields = $form_state['storage']['published_values']['detail_fields'];
-	$detail_title_raw = _opendata_get_title_field($colnames, $detail_fields);
+
+	$detail_title_raw = $colnames[$form_state['storage']['published_values']['detail_title_field']];
+	//$detail_title_raw = _opendata_get_title_field($colnames, $detail_fields);
 	$detail_title = _opendata_formatter($detail_title_raw, 'space');
 
 	// set the detail perm url based on the selected table key field
@@ -185,6 +187,7 @@ function opendata_create_display(&$view, $type, &$form_state) {
 		$a8 = $detail_title_raw;
 		$map_fields = _opendata_build_map_fields($a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8);
     $handler->override_option('fields', $map_fields);
+		$handler->override_option('filters', array());
 		$handler->override_option('items_per_page', 0);
 		$handler->override_option('style_plugin', 'openlayers_data');
 		$handler->override_option('style_options', array(
@@ -200,6 +203,79 @@ function opendata_create_display(&$view, $type, &$form_state) {
 				'other_left' => $table_key,
 				'name_field' => $name_field,
 				'description_field' => $description_field,
+			),
+		));
+		$handler->override_option('arguments', array(
+			$table_key => array(
+				'default_action' => 'default',
+				'style_plugin' => 'default_summary',
+				'style_options' => array(),
+				'wildcard' => 'all',
+				'wildcard_substitution' => 'All',
+				'title' => '',
+				'breadcrumb' => '',
+				'default_argument_type' => 'php',
+				'default_argument' => '',
+				'validate_type' => 'none',
+				'validate_fail' => 'not found',
+				'glossary' => 0,
+				'limit' => '0',
+				'case' => 'none',
+				'path_case' => 'none',
+				'transform_dash' => 0,
+				'id' => $table_key,
+				'table' => $data_table_name,
+				'field' => $table_key,
+				'validate_user_argument_type' => 'uid',
+				'validate_user_roles' => array(
+					'2' => 0,
+					'3' => 0,
+				),
+				'override' => array(
+					'button' => 'Use default',
+				),
+				'relationship' => 'none',
+				'default_options_div_prefix' => '',
+				'default_argument_fixed' => '',
+				'default_argument_user' => 0,
+				'default_argument_php' => 'return arg(5);',
+				'validate_argument_node_type' => array(
+					'webform' => 0,
+					'rotor_item' => 0,
+					'application' => 0,
+					'blog' => 0,
+					'data' => 0,
+					'pnapp' => 0,
+					'pn' => 0,
+					'cag' => 0,
+					'cag_schools' => 0,
+					'charter_school' => 0,
+					'ope_grant_desc' => 0,
+					'page' => 0,
+					'rtl' => 0,
+					'tah_losers' => 0,
+					'tah_winners' => 0,
+				),
+				'validate_argument_node_access' => 0,
+				'validate_argument_nid_type' => 'nid',
+				'validate_argument_vocabulary' => array(
+					'1' => 0,
+					'11' => 0,
+					'2' => 0,
+					'12' => 0,
+					'3' => 0,
+					'14' => 0,
+					'4' => 0,
+					'13' => 0,
+					'16' => 0,
+					'15' => 0,
+					'17' => 0,
+					'5' => 0,
+				),
+				'validate_argument_type' => 'tid',
+				'validate_argument_transform' => 0,
+				'validate_user_restrict_roles' => 0,
+				'validate_argument_php' => '',
 			),
 		));
 	} elseif ($type == 'map_block_detail') {

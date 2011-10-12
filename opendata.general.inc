@@ -276,8 +276,6 @@ function opendata_summary($form_state) {
  *
  */
 function opendata_detail($form_state) {
-    
-    //Detail Page
   $step_2 = array();
     
   $step_2['title'] = $form_state['storage']['general_values']['details']['title'];              //Get title of the dataset
@@ -297,6 +295,12 @@ function opendata_detail($form_state) {
     '#type' => 'item',
     '#title' => t('Fiscal Year - ' . $step_2['fiscal_year']),
   );
+  $form['detail_title_field'] = array(
+    '#type' => 'select',
+    '#title' => t('Field to use as title of detail page'),
+    '#options' => _opendata_get_fields($step_2['data_table']),
+    '#description' => t('Select the field you want to use as the titlen'),
+  );   
   
   // append the columns based on the selected data table
   $form[] = _opendata_build_detail_listing($step_2['data_table']);  
@@ -524,7 +528,6 @@ function opendata_general_views(&$form_state) {
 		$display_type = '';
 	}
 
-	#debug
 	//dpm($view);
 	
 	//=================== build summary context
