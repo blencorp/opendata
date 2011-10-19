@@ -35,6 +35,10 @@ function opendata_create_display(&$view, $type, &$form_state) {
   $map_lat = $form_state['storage']['summary_values']['summary_map']['map_lat'];
   $map_long = $form_state['storage']['summary_values']['summary_map']['map_long'];
 
+	// check if "Include Map" has been checked for summary and detail pages
+	$do_map_summary = $form_state['storage']['summary_values']['summary_map']['map_option'];
+	$do_map_detail = $form_state['storage']['published_values']['map_option'];
+
   // get the list of column names
   $colnames = array();
   $colnames = _opendata_get_fields($data_table_id);
@@ -346,7 +350,9 @@ function opendata_create_display(&$view, $type, &$form_state) {
     $a2 = $colnames;
     $a3 = $detail_fields;
     $a4 = $table_key;
-    $selected_fields = _opendata_build_detail_view_fields($a1, $a2, $a3, $a4);
+		$a5 = $do_map_detail;
+
+    $selected_fields = _opendata_build_detail_view_fields($a1, $a2, $a3, $a4, $a5);
 
     $handler->override_option('fields', $selected_fields);
 

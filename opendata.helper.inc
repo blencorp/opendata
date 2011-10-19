@@ -323,76 +323,92 @@ function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fie
     return $s_selected_fields;
 }
 
-function _opendata_build_detail_view_fields($data_table_name, $colnames, $d_fields, $table_key) {
-    
-    #debug
-    #dpm($d_fields);
-    
-    // Holds the built out views fields
-    $d_selected_fields = array();
-    
-    // IMPORTANT!
-    // set the table key as the first field
-    // to pass the right value to the detail page
-    $d_selected_fields[$table_key] = array(
-        'id' => $table_key,
-        'table' => $data_table_name,
-        'field' => $table_key,
-        'label' => _opendata_formatter($table_key, 'space'),
-        'exclude' => 0,
-        'relationship' => 'none',
-        'separator' => '',
-        'exclude' => 1,
-    );
-    $d_selected_fields[$table_key]['display_order'] = 0;
-    
+function _opendata_build_detail_view_fields($data_table_name, $colnames, $d_fields, $table_key, $do_map) {
+	#dpm($d_fields);
+	
+	// Holds the built out views fields
+	$d_selected_fields = array();
+	
+	// IMPORTANT!
+	// set the table key as the first field
+	// to pass the right value to the detail page
+	$d_selected_fields[$table_key] = array(
+	    'id' => $table_key,
+	    'table' => $data_table_name,
+	    'field' => $table_key,
+	    'label' => _opendata_formatter($table_key, 'space'),
+	    'exclude' => 0,
+	    'relationship' => 'none',
+	    'separator' => '',
+	    'exclude' => 1,
+	);
+	$d_selected_fields[$table_key]['display_order'] = 0;
+	
+	// find out the table key column name
+	$table_key_column = $colnames[$table_key];
+	
+	// a temporary display order field to hold, if the
+	// user does not enter any display order
+	$temp_display_order = 999;
+	
+	foreach ($colnames as $colname) {    
+    // Add the field_ prefix to the column name
+    $selected_colname = 'field_selected_' . $colname;
+    $sort_colname = 'field_display_order_' . $colname;   
+    $break_colname = 'field_line_break_' . $colname;   
 
-    // find out the table key column name
-    $table_key_column = $colnames[$table_key];
-    
-    // a temporary display order field to hold, if the
-    // user does not enter any display order
-    $temp_display_order = 999;
+    if ($d_fields[$selected_colname] == 1) {
+			if ($d_fields[$break_colname] == 1) {
+				$strbreak = '<div class="clear"></div>';
+				$strstyle = '<div class="detail wide">'; 
+			} else {
+				$strbreak = '';
+				if ($do_map == 1) {
+					$strstyle = '<div class="detail">'; 
+				} else {
+					$strstyle = '<div class="detail-wide">'; 
+				}
+			}
 
-    foreach ($colnames as $colname) {    
-        // Add the field_ prefix to the column name
-        $selected_colname = 'field_selected_' . $colname;
-        $sort_colname = 'field_display_order_' . $colname;   
-     
-        // If the field is selected, build the view field
-        if ($d_fields[$selected_colname] == 1) {
-            
-            $d_selected_fields[$colname] = array(
-                'id' => $colname,
-                'table' => $data_table_name,
-                'field' => $colname,
-                'label' => '',
-                'exclude' => 0,
-                'relationship' => 'none',
-                'alter' => array(
-                    'alter_text' => 1,
-          'text' => '<div class="detail"><strong>' . _opendata_formatter($colname, 'space') . '</strong><p>[' . $colname . ']</p></div>',
-                ),
-            );
-            
-            //
-            if ($d_fields[$sort_colname] != '' or $d_fields[$sort_colname] > 0) {
-                $d_selected_fields[$colname]['display_order'] = $d_fields[$sort_colname];
-            } else {
-                $d_selected_fields[$colname]['display_order'] = $temp_display_order;
-                $temp_display_order++;
-            }
-            
-        }
+			if ($d_fields[$break_colname] == 1) {
+			}
+
+			// construct custom text field
+			$display_colname = _opendata_formatter($colname, 'space');
+			$strtext = $strstyle; 
+			$strtext .= '<strong>' . $display_colname . '</strong>';
+			$strtext .= '<p>[' . $colname . ']</p>';
+			$strtext .= '</div>';
+			$strtext .= $strbreak;
+
+	    $d_selected_fields[$colname] = array(
+	        'id' => $colname,
+	        'table' => $data_table_name,
+	        'field' => $colname,
+	        'label' => '',
+	        'exclude' => 0,
+	        'relationship' => 'none',
+	        'alter' => array(
+	            'alter_text' => 1,
+							'text' => $strtext,
+	        ),
+	    );
+	    
+	    if ($d_fields[$sort_colname] != '' or $d_fields[$sort_colname] > 0) {
+				$d_selected_fields[$colname]['display_order'] = $d_fields[$sort_colname];
+	    } else {
+				$d_selected_fields[$colname]['display_order'] = $temp_display_order;
+				$temp_display_order++;
+	    }
     }
-    
-    // sort the display order
-    $d_selected_fields = _opendata_sort_display_order($d_selected_fields);
-
-    #debug
-    #dpm($d_selected_fields);  
-    
-    return $d_selected_fields;
+	}
+	
+	// sort the display order
+	$d_selected_fields = _opendata_sort_display_order($d_selected_fields);
+	
+	#dpm($d_selected_fields);  
+	
+	return $d_selected_fields;
 }
 
 function _opendata_sort_display_order($selected_fields, $isSummary = 0) {
@@ -667,17 +683,7 @@ function _opendata_build_detail_listing($tableid) {
       //Generate Sort order fields
       $display_order = 'field_display_order_' . $colname;
       $form['detail_fields'][$display_order] = array('#type' => 'textfield', '#size' => 10);
-      
-			/*
-      // generate title option
-      $detail_title = 'field_detail_title_' . $colname;
-      $form['detail_fields'][$detail_title] = array(
-        '#type' => 'radios',
-        '#options' => array('0' => ''),
-        //'#options' => array('0', '1'),
-      );
-			*/
-      
+
       // generate the line break
       $line_break = 'field_line_break_' . $colname;
       $form['detail_fields'][$line_break] = array('#type' => 'checkbox');
