@@ -300,7 +300,7 @@ function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fie
                 'exclude' => 0,
                 'relationship' => 'none',
                 'alter' => array(
-                    'make_link' => 1,
+                    'make_link' => 0,
                     'path' => $url,
                 ),
             );
@@ -318,97 +318,212 @@ function _opendata_build_view_summary_fields($data_table_name, $colnames, $s_fie
     // sort the display order
     $s_selected_fields = _opendata_sort_display_order($s_selected_fields, 1);
 
+		// mark the first element as a link
+		$i = 0;
+		foreach ($s_selected_fields as $key => $value) {        
+			// $i = 0 is the primary key field, $i = 1 is the page title field
+			if ($i == 2) {
+				//unset($selected_fields[$key]['alter']['path']);
+				$s_selected_fields[$key]['alter']['make_link'] = 1;
+			}
+			$i++;
+		}
+
     //dpm($s_selected_fields);  
     
     return $s_selected_fields;
 }
 
-function _opendata_build_detail_view_fields($data_table_name, $colnames, $d_fields, $table_key, $do_map) {
-	#dpm($d_fields);
+function _opendata_build_detail_view_fields($a1, $a2, $a3, $a4, $a5) {
+	$data_table_name = $a1;
+	$colnames = $a2;
+	$sfields = $a3; // selected detail fields 
+	$table_key = $a4; 
+	$do_map = $a5;
+
+	#dpm($sfields);
 	
-	// Holds the built out views fields
-	$d_selected_fields = array();
+	// create a display order variable
+	// start at -100 in case the user assigns some negative number
+	$dorder = -100;
+	
+	// instantiate array to hold selected detail fields
+	$dfields = array();
 	
 	// IMPORTANT!
 	// set the table key as the first field
 	// to pass the right value to the detail page
-	$d_selected_fields[$table_key] = array(
-	    'id' => $table_key,
-	    'table' => $data_table_name,
-	    'field' => $table_key,
-	    'label' => _opendata_formatter($table_key, 'space'),
-	    'exclude' => 0,
-	    'relationship' => 'none',
-	    'separator' => '',
-	    'exclude' => 1,
+	$dfields[$table_key] = array(
+    'id' => $table_key,
+    'table' => $data_table_name,
+    'field' => $table_key,
+    'label' => _opendata_formatter($table_key, 'space'),
+    'exclude' => 0,
+    'relationship' => 'none',
+    'separator' => '',
+    'exclude' => 1,
 	);
-	$d_selected_fields[$table_key]['display_order'] = 0;
+	//$dfields[$table_key]['display_order'] = 0;
+	$dfields[$table_key]['display_order'] = $dorder;
 	
 	// find out the table key column name
-	$table_key_column = $colnames[$table_key];
-	
+	//$table_key_column = $colnames[$table_key];
+
 	// a temporary display order field to hold, if the
 	// user does not enter any display order
 	$temp_display_order = 999;
 	
+	// we first need to add the badge fields to the top of the list
+	foreach ($colnames as $colname) {    
+    // Add the field_ prefix to the column name
+    $badge_colname = 'field_badge_' . $colname;   
+		$sort_colname = 'field_display_order_' . $colname;   
+
+		// if a field is marked as "badge," add it to the array
+    if ($sfields[$badge_colname] == 1) {
+	    $dfields[$colname] = array(
+				'id' => $colname,
+				'table' => $data_table_name,
+				'field' => $colname,
+				'label' => $colname,
+				'exclude' => 1,
+				'relationship' => 'none',
+	    );
+	    
+			/*
+	    if ($sfields[$sort_colname] != '' or $sfields[$sort_colname] > 0) {
+				$dfields[$colname]['display_order'] = $sfields[$sort_colname];
+	    } else {
+				$dfields[$colname]['display_order'] = $temp_display_order;
+				$temp_display_order++;
+	    }
+			*/
+
+			$dfields[$colname]['display_order'] = $dorder;
+			$dorder++;
+
+			//$dfields[$colname]['display_order'] = $temp_display_order;
+			//$temp_display_order++;
+    }
+	}
+
+	// obtain a list of columns and save them into $dfield
+	foreach ($dfields as $key => $row) {
+		$dfield[$key] = $row['display_order'];
+	}
+	// array_multisort(array_to_sort, sort_option, more_options,...)
+	// it returns true on success
+	// we are adding $dfields so it sorts by the common key
+	array_multisort($dfield, SORT_ASC, $dfields);
+
+	// next we create a custom field to contain the badge fields
+	// ONLY if there exists a badge field
+	if (count($dfields) > 0) {
+		$strtext = '<div class="badge-container">';
+
+		// add the badge fields to the custom field 
+		foreach ($dfields as $bfield) {
+			$badge_colname = 'field_badge_' . $bfield['label'];   
+			$break_colname = 'field_line_break_' . $bfield['label'];
+			$sort_colname = 'field_display_order_' . $bfield['label'];
+
+			// exclude non-badge fields if they exist
+			if ($sfields[$badge_colname] == 1) {
+				$strtext .= '<div class="badge">[' . $bfield['label'] . ']</div>';
+	
+				// if the badge field is marked with line break, we add it here
+				if ($sfields[$break_colname] == 1) {
+					$strtext .= '<div class="clear"></div>';
+				}
+			}
+		}
+
+		$strtext .= '</div>';
+	
+		// construct global custom field
+		$colname = "nothing";
+		$dfields[$colname] = array(
+			'label' => '',
+			'alter' => array(
+				'text' => $strtext,
+				'word_boundary' => 1,
+				'ellipsis' => 1,
+				'html' => 0,
+			),
+			'id' => $colname,
+			'table' => 'views',
+			'field' => $colname,
+			'relationship' => 'none',
+		);
+
+		// we want this custom field to be right under the badge fields.
+		//$dfields[$colname]['display_order'] = $temp_display_order;
+		$dfields[$colname]['display_order'] = $dorder;
+	}
+
+	// now we construct all non-badge fields by excluding 
+	// fields marked as badge
 	foreach ($colnames as $colname) {    
     // Add the field_ prefix to the column name
     $selected_colname = 'field_selected_' . $colname;
     $sort_colname = 'field_display_order_' . $colname;   
     $break_colname = 'field_line_break_' . $colname;   
+    $badge_colname = 'field_badge_' . $colname;   
 
-    if ($d_fields[$selected_colname] == 1) {
-			if ($d_fields[$break_colname] == 1) {
-				$strbreak = '<div class="clear"></div>';
-				$strstyle = '<div class="detail wide">'; 
-			} else {
-				$strbreak = '';
-				if ($do_map == 1) {
-					$strstyle = '<div class="detail">'; 
+		// exclude badge fields
+    if ($sfields[$badge_colname] != 1) {
+	    if ($sfields[$selected_colname] == 1) {
+				if ($sfields[$break_colname] == 1) {
+					$strbreak = '<div class="clear"></div>';
+					$strstyle = '<div class="detail wide">'; 
 				} else {
-					$strstyle = '<div class="detail-wide">'; 
+					$strbreak = '';
+					if ($do_map == 1) {
+						$strstyle = '<div class="detail">'; 
+					} else {
+						$strstyle = '<div class="detail-wide">'; 
+					}
 				}
-			}
-
-			if ($d_fields[$break_colname] == 1) {
-			}
-
-			// construct custom text field
-			$display_colname = _opendata_formatter($colname, 'space');
-			$strtext = $strstyle; 
-			$strtext .= '<strong>' . $display_colname . '</strong>';
-			$strtext .= '<p>[' . $colname . ']</p>';
-			$strtext .= '</div>';
-			$strtext .= $strbreak;
-
-	    $d_selected_fields[$colname] = array(
-	        'id' => $colname,
-	        'table' => $data_table_name,
-	        'field' => $colname,
-	        'label' => '',
-	        'exclude' => 0,
-	        'relationship' => 'none',
-	        'alter' => array(
-	            'alter_text' => 1,
-							'text' => $strtext,
-	        ),
-	    );
-	    
-	    if ($d_fields[$sort_colname] != '' or $d_fields[$sort_colname] > 0) {
-				$d_selected_fields[$colname]['display_order'] = $d_fields[$sort_colname];
-	    } else {
-				$d_selected_fields[$colname]['display_order'] = $temp_display_order;
-				$temp_display_order++;
+	
+				// construct custom text field
+				$display_colname = _opendata_formatter($colname, 'space');
+				$strtext = $strstyle; 
+				$strtext .= '<strong>' . $display_colname . '</strong>';
+				$strtext .= '<p>[' . $colname . ']</p>';
+				$strtext .= '</div>';
+				$strtext .= $strbreak;
+	
+		    $dfields[$colname] = array(
+		        'id' => $colname,
+		        'table' => $data_table_name,
+		        'field' => $colname,
+		        'label' => '',
+		        'exclude' => 0,
+		        'relationship' => 'none',
+		        'alter' => array(
+		            'alter_text' => 1,
+								'text' => $strtext,
+		        ),
+		    );
+		    
+		    if ($sfields[$sort_colname] != '' or $sfields[$sort_colname] > 0) {
+					$dfields[$colname]['display_order'] = $sfields[$sort_colname];
+		    } else {
+					$dfields[$colname]['display_order'] = $dorder;
+					$dorder++;
+					//$dfields[$colname]['display_order'] = $temp_display_order;
+					//$temp_display_order++;
+		    }
 	    }
-    }
+		}
 	}
 	
 	// sort the display order
-	$d_selected_fields = _opendata_sort_display_order($d_selected_fields);
+	$dfields = _opendata_sort_display_order($dfields);
 	
-	#dpm($d_selected_fields);  
+	#dpm($dfields);  
 	
-	return $d_selected_fields;
+	return $dfields;
 }
 
 function _opendata_sort_display_order($selected_fields, $isSummary = 0) {
@@ -419,21 +534,30 @@ function _opendata_sort_display_order($selected_fields, $isSummary = 0) {
 
 	array_multisort($selected_field, SORT_ASC, $selected_fields);
 
+	// commenting this out since the make_link flag is set to off 
+	// for all fields except the third one (since the first field 
+	// is the primary key and the second is the page title).
+	// the first non-excluded field is made a link in 
+	// _opendata_build_view_summary_fields().
+
 	// remove path for only summary fields
+	/*
 	if ($isSummary) {
 		// hold index of the array
 		$i = 0;
 	
 		foreach ($selected_fields as $key => $value) {        
-			if ($i > 2) {
+			if ($i == 1) {
 				// delete the 'path' array item				
 				//unset($selected_field['alter']['path']);
-				unset($selected_fields[$key]['alter']['path']);
+				//unset($selected_fields[$key]['alter']['path']);
+				$s_selected_fields[$key]['alter']['make_link'] = 1;
 			}
 			// increment the current index
 			$i++;
 		}
 	}
+	*/
 	#dpm($selected_fields);
 
 	return $selected_fields;
