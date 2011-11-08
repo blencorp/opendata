@@ -1,5 +1,5 @@
-name = opendata
-description = Visualizes OpenData sets
+name = OpenData Publisher
+description = OpenData is a data visualizer/publisher
 core = 6.x
 package = Feeds
 dependencies[] = feeds
